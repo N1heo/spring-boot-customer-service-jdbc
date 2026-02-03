@@ -1,1 +1,17 @@
+#Global
 /.idea/
+.vscode/
+*.iws
+*.iml
+*.ipr
+
+#Backend
+backend/target
+backend/.mvn
+backend/.mvn/wrapper/maven-wrapper.jar
+backend/mvnw
+backend/mvnw.cmd
+
+#Frontend
+/frontend/node_modules
+/frontend/dist
