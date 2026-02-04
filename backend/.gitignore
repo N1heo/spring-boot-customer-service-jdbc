@@ -8,6 +8,12 @@ HELP.md
 mvnw
 mvnw.cmd
 
+# Ignore everything inside the folder
+/uploads/*
+
+# Do NOT ignore the .gitkeep file itself
+!/uploads/.gitkeep
+
 ### STS ###
 .apt_generated
 .classpath
