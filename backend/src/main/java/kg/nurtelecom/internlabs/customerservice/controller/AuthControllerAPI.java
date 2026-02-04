@@ -1,4 +1,4 @@
-package kg.nurtelecom.internlabs.customerservice.controller.api;
+package kg.nurtelecom.internlabs.customerservice.controller;
 
 import kg.nurtelecom.internlabs.customerservice.payload.request.auth.LoginRequest;
 import kg.nurtelecom.internlabs.customerservice.service.AuthService;
