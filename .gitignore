@@ -1,17 +1,43 @@
-#Global
-/.idea/
-.vscode/
+HELP.md
+target/
+.mvn
+.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+HELP.md
+mvnw
+mvnw.cmd
+
+
+/uploads/*
+
+
+!/uploads/.gitkeep
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+### IntelliJ IDEA ###
+.idea
 *.iws
 *.iml
 *.ipr
 
-#Backend
-backend/target
-backend/.mvn
-backend/.mvn/wrapper/maven-wrapper.jar
-backend/mvnw
-backend/mvnw.cmd
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
 
-#Frontend
-/frontend/node_modules
-/frontend/dist
+### VS Code ###
+.vscode/
