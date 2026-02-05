@@ -3,8 +3,7 @@ package kg.nurtelecom.internlabs.customerservice.payload.request.customer;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
-import kg.nurtelecom.internlabs.customerservice.enums.ERole;
+import kg.nurtelecom.internlabs.customerservice.enums.Role;
 
 public class AdminCustomerCreateRequest {
     @NotBlank
@@ -24,7 +23,7 @@ public class AdminCustomerCreateRequest {
     @NotBlank
     private String password;
 
-    private ERole role;
+    private Role role;
 
     public String getFirstName() {
         return firstName;
@@ -66,11 +65,11 @@ public class AdminCustomerCreateRequest {
         this.password = password;
     }
 
-    public ERole getRole() {
+    public Role getRole() {
         return role;
     }
 
-    public void setRole(ERole role) {
+    public void setRole(Role role) {
         this.role = role;
     }
 }

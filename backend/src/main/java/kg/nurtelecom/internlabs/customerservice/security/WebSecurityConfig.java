@@ -30,11 +30,10 @@ public class WebSecurityConfig {
     private final JwtFilter jwtFilter;
     private final UserDetailsService userDetailsService;
 
-
-    public WebSecurityConfig( JwtFilter jwtFilter, UserDetailsService userDetailsService) {
+    public WebSecurityConfig(JwtFilter jwtFilter,
+                             UserDetailsService userDetailsService) {
         this.jwtFilter = jwtFilter;
         this.userDetailsService = userDetailsService;
-
     }
 
 
