@@ -1,4 +1,108 @@
 package kg.nurtelecom.internlabs.customerservice.repository;
 
-public class AuthRepositoryJdbc {
+import kg.nurtelecom.internlabs.customerservice.payload.request.auth.LoginRequest;
+import kg.nurtelecom.internlabs.customerservice.payload.request.auth.RegisterCustomerRequest;
+import kg.nurtelecom.internlabs.customerservice.repository.jdbc.JdbcConnectionFactory;
+import kg.nurtelecom.internlabs.customerservice.security.jwt.JwtService;
+import kg.nurtelecom.internlabs.customerservice.service.AuthService;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Repository;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Optional;
+import java.util.UUID;
+
+@Repository
+public class AuthRepositoryJdbc implements AuthService {
+
+  private final JdbcConnectionFactory jdbcConnectionFactory;
+  private final JwtService jwtService;
+  private final AuthenticationManager authenticationManager;
+  private final PasswordEncoder passwordEncoder;
+
+  public AuthRepositoryJdbc(JdbcConnectionFactory jdbcConnectionFactory,
+                            JwtService jwtService,
+                            AuthenticationManager authenticationManager,
+                            PasswordEncoder passwordEncoder) {
+    this.jdbcConnectionFactory = jdbcConnectionFactory;
+    this.jwtService = jwtService;
+    this.authenticationManager = authenticationManager;
+    this.passwordEncoder = passwordEncoder;
+  }
+
+  @Override
+  public String verify(LoginRequest loginRequest) {
+    Authentication authentication = authenticationManager.authenticate(
+        new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword())
+    );
+
+    if (authentication.isAuthenticated()) {
+      return jwtService.generateToken(loginRequest.getEmail());
+    }
+    return "fail";
+  }
+
+  @Override
+  public Optional<String> findPasswordHashByEmail(String email) {
+    String sql = "SELECT password_hash FROM users WHERE email = ?";
+    try (Connection connection = jdbcConnectionFactory.getConnection();
+         PreparedStatement statement = connection.prepareStatement(sql)) {
+      statement.setString(1, email);
+      try (ResultSet resultSet = statement.executeQuery()) {
+        if (resultSet.next()) {
+          return Optional.of(resultSet.getString("password_hash"));
+        }
+      }
+    } catch (SQLException e) {
+      throw new RuntimeException("Database error during password lookup", e);
+    }
+    return Optional.empty();
+  }
+
+  @Override
+  public String register(RegisterCustomerRequest request) {
+    UUID userId = UUID.randomUUID();
+    UUID customerId = UUID.randomUUID();
+    String encodedPassword = passwordEncoder.encode(request.getPassword());
+
+    String userSql = "INSERT INTO users (id, email, password_hash, role) VALUES (?, ?, ?, ?)";
+    String customerSql = "INSERT INTO customers (id, user_id, firstname, lastname, phone, image_path) VALUES (?, ?, ?, ?, ?, ?)";
+
+    try (Connection connection = jdbcConnectionFactory.getConnection()) {
+      connection.setAutoCommit(false);
+      try {
+        try (PreparedStatement userStmt = connection.prepareStatement(userSql)) {
+          userStmt.setObject(1, userId);
+          userStmt.setString(2, request.getEmail());
+          userStmt.setString(3, encodedPassword);
+          userStmt.setString(4, "USER");
+          userStmt.executeUpdate();
+        }
+
+        try (PreparedStatement custStmt = connection.prepareStatement(customerSql)) {
+          custStmt.setObject(1, customerId);
+          custStmt.setObject(2, userId);
+          custStmt.setString(3, request.getFirstname());
+          custStmt.setString(4, request.getLastname());
+          custStmt.setString(5, request.getPhone());
+          custStmt.setString(6, request.getImagePath());
+          custStmt.executeUpdate();
+        }
+
+        connection.commit();
+        return jwtService.generateToken(request.getEmail());
+      } catch (SQLException e) {
+        connection.rollback();
+        throw new RuntimeException("Transaction failed: " + e.getMessage(), e);
+      }
+    } catch (SQLException e) {
+      throw new RuntimeException("Connection error", e);
+    }
+  }
 }
