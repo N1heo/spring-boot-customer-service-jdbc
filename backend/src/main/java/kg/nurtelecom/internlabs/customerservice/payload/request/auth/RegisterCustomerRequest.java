@@ -1,42 +1,31 @@
 package kg.nurtelecom.internlabs.customerservice.payload.request.auth;
 
-
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 
 public class RegisterCustomerRequest {
 
-    @NotBlank
-    private String firstName;
-
-    @NotBlank
-    private String lastName;
-
-    @NotBlank
-    @Email
+    @NotBlank(message = "Email is required")
+    @Email(message = "Invalid email format")
     private String email;
 
-    @Pattern(regexp = "^\\+?[0-9]{9,15}$")
-    @NotBlank
-    private String phone;
-
-    @NotBlank
+    @NotBlank(message = "Password is required")
+    @Size(min = 6, message = "Password must be at least 6 characters long")
     private String password;
 
-    public String getFirstName() {
-        return firstName;
-    }
+    @NotBlank(message = "Firstname is required")
+    private String firstname;
 
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
+    @NotBlank(message = "Lastname is required")
+    private String lastname;
 
-    public String getLastName() {
-        return lastName;
-    }
+    @NotBlank(message = "Phone number is required")
+    @Pattern(regexp = "^\\+?[0-9]{9,15}$", message = "Invalid phone format")
+    private String phone;
 
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
-    }
+    private String imagePath;
 
     public String getEmail() {
         return email;
@@ -44,6 +33,30 @@ public class RegisterCustomerRequest {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public String getFirstname() {
+        return firstname;
+    }
+
+    public void setFirstname(String firstname) {
+        this.firstname = firstname;
+    }
+
+    public String getLastname() {
+        return lastname;
+    }
+
+    public void setLastname(String lastname) {
+        this.lastname = lastname;
     }
 
     public String getPhone() {
@@ -54,11 +67,11 @@ public class RegisterCustomerRequest {
         this.phone = phone;
     }
 
-    public String getPassword() {
-        return password;
+    public String getImagePath() {
+        return imagePath;
     }
 
-    public void setPassword(String password) {
-        this.password = password;
+    public void setImagePath(String imagePath) {
+        this.imagePath = imagePath;
     }
 }
