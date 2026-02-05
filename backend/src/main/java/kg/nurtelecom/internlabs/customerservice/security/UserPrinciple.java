@@ -1,5 +1,6 @@
-package kg.nurtelecom.internlabs.customerservice.model;
+package kg.nurtelecom.internlabs.customerservice.security;
 
+import kg.nurtelecom.internlabs.customerservice.enums.Role;
 import org.jspecify.annotations.Nullable;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -9,19 +10,21 @@ import java.util.Collection;
 import java.util.Collections;
 
 
-public class User implements UserDetails {
-    private String username;
-    private String password;
+public class UserPrinciple implements UserDetails {
+    private final String username;
+    private final String password;
+    private final Role role;
 
-    public User(String username, String password) {
+    public UserPrinciple(String username, String password, Role role) {
         this.username = username;
         this.password = password;
+        this.role = role;
     }
 
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Collections.singleton(new SimpleGrantedAuthority("ROLE_USER"));
+        return Collections.singleton(new SimpleGrantedAuthority(role.name()));
     }
 
     @Override

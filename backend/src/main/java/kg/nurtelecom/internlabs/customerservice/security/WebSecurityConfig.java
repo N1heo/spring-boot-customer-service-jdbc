@@ -27,17 +27,13 @@ import java.util.List;
 @Configuration
 @EnableWebSecurity
 public class WebSecurityConfig {
-    private final JwtAuthenticationEntryPoint authEntryPoint;
-    private final JwtAccessDeniedHandler accessDeniedHandler;
+    private final JwtFilter jwtFilter;
+    private final UserDetailsService userDetailsService;
 
     public WebSecurityConfig(JwtFilter jwtFilter,
-                             UserDetailsService userDetailsService,
-                             JwtAuthenticationEntryPoint authEntryPoint,
-                             JwtAccessDeniedHandler accessDeniedHandler) {
+                             UserDetailsService userDetailsService) {
         this.jwtFilter = jwtFilter;
         this.userDetailsService = userDetailsService;
-        this.authEntryPoint = authEntryPoint;
-        this.accessDeniedHandler = accessDeniedHandler;
     }
 
 
@@ -45,10 +41,6 @@ public class WebSecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
-                .exceptionHandling(ex -> ex
-                        .authenticationEntryPoint(authEntryPoint)
-                        .accessDeniedHandler(accessDeniedHandler)
-                )
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(request ->
