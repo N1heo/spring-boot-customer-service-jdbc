@@ -45,7 +45,7 @@ public class WebSecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(request ->
-                        request.requestMatchers("/api/auth/*")
+                        request.requestMatchers("/login","/register")
                                 .permitAll()
                                 .anyRequest()
                                 .authenticated())
