@@ -1,4 +1,4 @@
-package kg.nurtelecom.internlabs;
+package kg.nurtelecom.internlabs.customerservice;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
