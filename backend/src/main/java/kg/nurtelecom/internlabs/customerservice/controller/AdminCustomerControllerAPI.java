@@ -61,7 +61,6 @@ public class AdminCustomerControllerAPI {
             @Valid @RequestBody AdminCustomerUpdateRequest request) {
 
         try {
-            // Проверяем существование (согласно вашему стилю)
             CustomerResponse existing = service.findById(id);
 
             if (existing != null) {

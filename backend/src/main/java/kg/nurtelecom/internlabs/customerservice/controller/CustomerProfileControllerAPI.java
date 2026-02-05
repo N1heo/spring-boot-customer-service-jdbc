@@ -67,7 +67,6 @@ public class CustomerProfileControllerAPI {
     @DeleteMapping("/uploads")
     public ResponseEntity<CustomerResponse> deleteMyPhoto() {
         try {
-            // Метод сервиса удалит файл и вернет обновленный профиль (где imagePath = default)
             CustomerResponse updatedCustomer = service.deleteProfilePhoto();
             return new ResponseEntity<>(updatedCustomer, HttpStatus.OK);
         } catch (Exception e) {
