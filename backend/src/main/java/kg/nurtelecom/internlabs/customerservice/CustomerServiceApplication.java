@@ -9,9 +9,9 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 @EnableConfigurationProperties(StorageProperties.class)
 public class CustomerServiceApplication {
 
-	public static void main(String[] args) {
-		System.out.println("Hello World");
-		SpringApplication.run(CustomerServiceApplication.class, args);
-	}
+    public static void main(String[] args) {
+        System.out.println("Hello World");
+        SpringApplication.run(CustomerServiceApplication.class, args);
+    }
 
 }
