@@ -1,9 +1,9 @@
 package kg.nurtelecom.internlabs.customerservice.controller;
 
 import jakarta.validation.Valid;
-import kg.nurtelecom.internlabs.customerservice.payload.request.customer.AdminCustomerUpdateRequest; // Используем тот же DTO или создаем свой ProfileUpdateRequest
+import kg.nurtelecom.internlabs.customerservice.payload.request.customer.AdminCustomerUpdateRequest;
 import kg.nurtelecom.internlabs.customerservice.payload.response.CustomerResponse;
-import kg.nurtelecom.internlabs.customerservice.service.CustomerService;
+import kg.nurtelecom.internlabs.customerservice.service.CustomerProfileService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -15,9 +15,9 @@ import org.springframework.web.multipart.MultipartFile;
 @RequestMapping("/api/customer/avatar")
 public class CustomerProfileControllerAPI {
 
-    private final CustomerService service;
+    private final CustomerProfileService service;
 
-    public CustomerProfileControllerAPI(CustomerService service) {
+    public CustomerProfileControllerAPI(CustomerProfileService service) {
         this.service = service;
     }
 
@@ -36,28 +36,38 @@ public class CustomerProfileControllerAPI {
         }
     }
 
-    @PutMapping
+    @PutMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<CustomerResponse> updateMyProfile(
             @Valid @RequestBody AdminCustomerUpdateRequest request) {
 
         try {
             CustomerResponse updatedCustomer = service.updateCurrentProfile(request);
-            return new ResponseEntity<>(updatedCustomer, HttpStatus.OK);
+
+            if (updatedCustomer != null) {
+                return new ResponseEntity<>(updatedCustomer, HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+
         } catch (Exception e) {
             return new ResponseEntity<>((HttpHeaders) null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @PutMapping(value = "/uploads", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<CustomerResponse> updateMyPhoto(
-            @RequestPart("photo") MultipartFile photo) {
+    public ResponseEntity<CustomerResponse> updateMyPhoto(@RequestPart("photo") MultipartFile photo) {
         try {
             if (photo == null || photo.isEmpty()) {
                 return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
             }
 
             CustomerResponse updatedCustomer = service.updateProfilePhoto(photo);
-            return new ResponseEntity<>(updatedCustomer, HttpStatus.OK);
+
+            if (updatedCustomer != null) {
+                return new ResponseEntity<>(updatedCustomer, HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
 
         } catch (Exception e) {
             return new ResponseEntity<>((HttpHeaders) null, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -68,7 +78,13 @@ public class CustomerProfileControllerAPI {
     public ResponseEntity<CustomerResponse> deleteMyPhoto() {
         try {
             CustomerResponse updatedCustomer = service.deleteProfilePhoto();
-            return new ResponseEntity<>(updatedCustomer, HttpStatus.OK);
+
+            if (updatedCustomer != null) {
+                return new ResponseEntity<>(updatedCustomer, HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+
         } catch (Exception e) {
             return new ResponseEntity<>((HttpHeaders) null, HttpStatus.INTERNAL_SERVER_ERROR);
         }

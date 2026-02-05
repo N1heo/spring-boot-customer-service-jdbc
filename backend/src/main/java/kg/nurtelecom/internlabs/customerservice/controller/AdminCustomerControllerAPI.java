@@ -4,7 +4,7 @@ import jakarta.validation.Valid;
 import kg.nurtelecom.internlabs.customerservice.payload.request.customer.AdminCustomerCreateRequest;
 import kg.nurtelecom.internlabs.customerservice.payload.request.customer.AdminCustomerUpdateRequest;
 import kg.nurtelecom.internlabs.customerservice.payload.response.CustomerResponse;
-import kg.nurtelecom.internlabs.customerservice.service.CustomerService;
+import kg.nurtelecom.internlabs.customerservice.service.AdminCustomerService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -20,9 +20,9 @@ import java.util.UUID;
 @RequestMapping("/api/admin/customers")
 public class AdminCustomerControllerAPI {
 
-    private final CustomerService service;
+    private final AdminCustomerService service;
 
-    public AdminCustomerControllerAPI(CustomerService service) {
+    public AdminCustomerControllerAPI(AdminCustomerService service) {
         this.service = service;
     }
 
@@ -42,14 +42,26 @@ public class AdminCustomerControllerAPI {
         }
     }
 
-    @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+    @GetMapping("/{id}")
+    public ResponseEntity<CustomerResponse> getById(@PathVariable("id") UUID id) {
+        try {
+            CustomerResponse customer = service.findById(id);
+            return (customer != null)
+                    ? new ResponseEntity<>(customer, HttpStatus.OK)
+                    : new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        } catch (Exception e) {
+            return new ResponseEntity<>((HttpHeaders) null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<CustomerResponse> createCustomer(
             @RequestPart(value = "photo", required = false) MultipartFile photo,
             @Valid @RequestPart("data") AdminCustomerCreateRequest request
     ) {
         try {
-            CustomerResponse _customer = service.create(photo, request);
-            return new ResponseEntity<>(_customer, HttpStatus.CREATED);
+            CustomerResponse created = service.create(photo, request);
+            return new ResponseEntity<>(created, HttpStatus.CREATED);
         } catch (Exception e) {
             return new ResponseEntity<>((HttpHeaders) null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -58,14 +70,14 @@ public class AdminCustomerControllerAPI {
     @PutMapping("/{id}")
     public ResponseEntity<CustomerResponse> updateCustomer(
             @PathVariable("id") UUID id,
-            @Valid @RequestBody AdminCustomerUpdateRequest request) {
-
+            @Valid @RequestBody AdminCustomerUpdateRequest request
+    ) {
         try {
             CustomerResponse existing = service.findById(id);
 
             if (existing != null) {
-                CustomerResponse updatedCustomer = service.update(id, request);
-                return new ResponseEntity<>(updatedCustomer, HttpStatus.OK);
+                CustomerResponse updated = service.update(id, request);
+                return new ResponseEntity<>(updated, HttpStatus.OK);
             } else {
                 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
             }
