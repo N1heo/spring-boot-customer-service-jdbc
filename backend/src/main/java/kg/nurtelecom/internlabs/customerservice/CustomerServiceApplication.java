@@ -2,12 +2,12 @@ package kg.nurtelecom.internlabs.customerservice;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.security.autoconfigure.SecurityAutoConfiguration;
 
-@SpringBootApplication
+@SpringBootApplication(exclude = { SecurityAutoConfiguration.class })
 public class CustomerServiceApplication {
 
 	public static void main(String[] args) {
-		System.out.println("Hello World");
 		SpringApplication.run(CustomerServiceApplication.class, args);
 	}
 
