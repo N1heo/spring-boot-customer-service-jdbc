@@ -1,8 +1,6 @@
 package kg.nurtelecom.internlabs.customerservice.service;
 
 import kg.nurtelecom.internlabs.customerservice.model.User;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -12,7 +10,6 @@ import org.springframework.stereotype.Service;
 public class CustomerDetailService implements UserDetailsService {
 
 
-    private static final Logger log = LoggerFactory.getLogger(CustomerDetailService.class);
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
