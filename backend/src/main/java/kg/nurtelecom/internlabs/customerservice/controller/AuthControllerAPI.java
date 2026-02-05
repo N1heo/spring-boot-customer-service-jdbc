@@ -1,11 +1,13 @@
 package kg.nurtelecom.internlabs.customerservice.controller;
 
 import kg.nurtelecom.internlabs.customerservice.payload.request.auth.LoginRequest;
+import kg.nurtelecom.internlabs.customerservice.payload.request.auth.RegisterCustomerRequest;
+import kg.nurtelecom.internlabs.customerservice.payload.response.AuthResponse;
 import kg.nurtelecom.internlabs.customerservice.service.AuthService;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 public class AuthControllerAPI {
@@ -15,14 +17,16 @@ public class AuthControllerAPI {
         this.authService = authService;
     }
 
-    @PostMapping("/register")
-    public ResponseEntity<String> register() {
-        return ResponseEntity.ok().build();
+    @PostMapping(value = "/register", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<String> register(
+            @RequestPart("data") RegisterCustomerRequest request,
+            @RequestPart(value = "photo", required = false) MultipartFile photo) {
+        authService.register(request, photo);
+        return ResponseEntity.ok("Customer registered successfully");
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody LoginRequest loginRequest) {
-        String token = authService.verify(loginRequest);
-        return ResponseEntity.ok(token);
+    public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest loginRequest) {
+        return ResponseEntity.ok(authService.verify(loginRequest));
     }
 }
