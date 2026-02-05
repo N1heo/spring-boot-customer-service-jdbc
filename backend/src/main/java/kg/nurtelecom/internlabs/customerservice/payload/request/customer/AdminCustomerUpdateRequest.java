@@ -4,7 +4,9 @@ import jakarta.validation.constraints.*;
 
 public class AdminCustomerUpdateRequest {
 
-    private String name;
+    private String firstName;
+
+    private String lastName;
 
     @Email
     private String email;
@@ -12,12 +14,20 @@ public class AdminCustomerUpdateRequest {
     @Pattern(regexp = "^\\+?[0-9]{9,15}$")
     private String phone;
 
-    public String getName() {
-        return name;
+    public String getFirstName() {
+        return firstName;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
     }
 
     public String getEmail() {

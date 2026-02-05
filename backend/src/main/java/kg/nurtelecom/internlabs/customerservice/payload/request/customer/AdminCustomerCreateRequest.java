@@ -8,7 +8,10 @@ import kg.nurtelecom.internlabs.customerservice.enums.ERole;
 
 public class AdminCustomerCreateRequest {
     @NotBlank
-    private String name;
+    private String firstName;
+
+    @NotBlank
+    private String lastName;
 
     @NotBlank
     @Email
@@ -20,14 +23,23 @@ public class AdminCustomerCreateRequest {
 
     @NotBlank
     private String password;
+
     private ERole role;
 
-    public String getName() {
-        return name;
+    public String getFirstName() {
+        return firstName;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
     }
 
     public String getEmail() {
