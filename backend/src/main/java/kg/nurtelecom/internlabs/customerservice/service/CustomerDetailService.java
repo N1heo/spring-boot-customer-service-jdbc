@@ -9,10 +9,10 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 @Service
-public class CustomerProfileService implements UserDetailsService {
+public class CustomerDetailService implements UserDetailsService {
 
 
-    private static final Logger log = LoggerFactory.getLogger(CustomerProfileService.class);
+    private static final Logger log = LoggerFactory.getLogger(CustomerDetailService.class);
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {

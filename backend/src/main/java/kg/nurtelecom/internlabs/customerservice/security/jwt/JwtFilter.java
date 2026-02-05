@@ -4,7 +4,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import kg.nurtelecom.internlabs.customerservice.service.CustomerProfileService;
+import kg.nurtelecom.internlabs.customerservice.service.CustomerDetailService;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -17,13 +17,13 @@ import java.io.IOException;
 @Component
 public class JwtFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
-    private final CustomerProfileService customerProfileService;
+    private final CustomerDetailService customerDetailService;
 
 
 
-    public JwtFilter(JwtService jwtService, CustomerProfileService customerProfileService) {
+    public JwtFilter(JwtService jwtService, CustomerDetailService customerDetailService) {
         this.jwtService = jwtService;
-        this.customerProfileService = customerProfileService;
+        this.customerDetailService = customerDetailService;
     }
 
 
@@ -41,7 +41,7 @@ public class JwtFilter extends OncePerRequestFilter {
         }
 
         if(username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = customerProfileService.loadUserByUsername(username);
+            UserDetails userDetails = customerDetailService.loadUserByUsername(username);
             if(jwtService.validateToken(token,userDetails)) {
                 UsernamePasswordAuthenticationToken authToken =
                         new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
