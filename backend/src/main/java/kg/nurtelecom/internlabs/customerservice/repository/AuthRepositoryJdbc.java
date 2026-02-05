@@ -2,14 +2,17 @@ package kg.nurtelecom.internlabs.customerservice.repository;
 
 import kg.nurtelecom.internlabs.customerservice.payload.request.auth.LoginRequest;
 import kg.nurtelecom.internlabs.customerservice.payload.request.auth.RegisterCustomerRequest;
+import kg.nurtelecom.internlabs.customerservice.payload.response.AuthResponse;
 import kg.nurtelecom.internlabs.customerservice.repository.jdbc.JdbcConnectionFactory;
 import kg.nurtelecom.internlabs.customerservice.security.jwt.JwtService;
 import kg.nurtelecom.internlabs.customerservice.service.AuthService;
+import kg.nurtelecom.internlabs.customerservice.storage.StorageService;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Repository;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -25,27 +28,30 @@ public class AuthRepositoryJdbc implements AuthService {
   private final JwtService jwtService;
   private final AuthenticationManager authenticationManager;
   private final PasswordEncoder passwordEncoder;
+  private final StorageService storageService;
 
   public AuthRepositoryJdbc(JdbcConnectionFactory jdbcConnectionFactory,
                             JwtService jwtService,
                             AuthenticationManager authenticationManager,
-                            PasswordEncoder passwordEncoder) {
+                            PasswordEncoder passwordEncoder,
+                            StorageService storageService) {
     this.jdbcConnectionFactory = jdbcConnectionFactory;
     this.jwtService = jwtService;
     this.authenticationManager = authenticationManager;
     this.passwordEncoder = passwordEncoder;
+    this.storageService = storageService;
   }
 
   @Override
-  public String verify(LoginRequest loginRequest) {
+  public AuthResponse verify(LoginRequest loginRequest) {
     Authentication authentication = authenticationManager.authenticate(
         new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword())
     );
 
     if (authentication.isAuthenticated()) {
-      return jwtService.generateToken(loginRequest.getEmail());
+      return new AuthResponse(jwtService.generateToken(loginRequest.getEmail()));
     }
-    return "fail";
+    throw new kg.nurtelecom.internlabs.customerservice.exception.UnauthorizedException("Invalid credentials");
   }
 
   @Override
@@ -66,7 +72,12 @@ public class AuthRepositoryJdbc implements AuthService {
   }
 
   @Override
-  public String register(RegisterCustomerRequest request) {
+  public void register(RegisterCustomerRequest request, MultipartFile photo) {
+    String imagePath = null;
+    if (photo != null && !photo.isEmpty()) {
+      imagePath = storageService.store(photo);
+    }
+
     UUID userId = UUID.randomUUID();
     UUID customerId = UUID.randomUUID();
     String encodedPassword = passwordEncoder.encode(request.getPassword());
@@ -91,12 +102,11 @@ public class AuthRepositoryJdbc implements AuthService {
           custStmt.setString(3, request.getFirstname());
           custStmt.setString(4, request.getLastname());
           custStmt.setString(5, request.getPhone());
-          custStmt.setString(6, request.getImagePath());
+          custStmt.setString(6, imagePath);
           custStmt.executeUpdate();
         }
 
         connection.commit();
-        return jwtService.generateToken(request.getEmail());
       } catch (SQLException e) {
         connection.rollback();
         throw new RuntimeException("Transaction failed: " + e.getMessage(), e);
