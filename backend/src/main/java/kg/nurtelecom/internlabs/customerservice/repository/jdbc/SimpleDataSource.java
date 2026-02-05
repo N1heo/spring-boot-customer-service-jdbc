@@ -62,11 +62,15 @@ public class SimpleDataSource implements DataSource {
                 DriverManager.setLoginTimeout(loginTimeoutSeconds);
             }
 
-            Properties p = (Properties) this.props.clone();
-            if (username != null) p.setProperty("user", username);
-            if (pwd != null) p.setProperty("password", pwd);
+            Properties properties = (Properties) this.props.clone();
+            if (username != null) {
+                properties.setProperty("user", username);
+            }
+            if (pwd != null) {
+                properties.setProperty("password", pwd);
+            }
 
-            return DriverManager.getConnection(this.url, p);
+            return DriverManager.getConnection(this.url, properties);
         } catch (SQLException e) {
             throw new SQLException(
                     "DB connection failed. url=" + safeUrl(this.url) +
