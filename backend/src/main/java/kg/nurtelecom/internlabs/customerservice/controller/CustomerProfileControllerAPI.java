@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 @RestController
-@RequestMapping("/api/customer/avatar")
+@RequestMapping("/customer/profile")
 public class CustomerProfileControllerAPI {
 
     private final CustomerProfileService service;
