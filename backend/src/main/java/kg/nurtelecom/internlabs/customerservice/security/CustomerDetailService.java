@@ -7,10 +7,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
+import java.util.UUID;
 
 @Service
 public class CustomerDetailService implements UserDetailsService {
@@ -23,14 +21,13 @@ public class CustomerDetailService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-
         String normalized = email == null ? null : email.trim().toLowerCase();
         if (normalized == null || normalized.isBlank()) {
             throw new UsernameNotFoundException("User not found");
         }
 
         String sql = """
-            SELECT email, password_hash, role
+            SELECT email, password_hash, role, customer_id
             FROM users
             WHERE lower(email) = ?
         """;
@@ -45,10 +42,13 @@ public class CustomerDetailService implements UserDetailsService {
                     throw new UsernameNotFoundException("User not found: " + normalized);
                 }
 
+                UUID customerId = (UUID) rs.getObject("customer_id");
+
                 return new UserPrinciple(
                         rs.getString("email"),
                         rs.getString("password_hash"),
-                        Role.valueOf(rs.getString("role"))
+                        Role.valueOf(rs.getString("role")),
+                        customerId
                 );
             }
 
