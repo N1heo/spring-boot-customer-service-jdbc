@@ -63,9 +63,7 @@ public class JwtFilter extends OncePerRequestFilter {
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                 }
             } catch (UsernameNotFoundException ex) {
-                // token subject not in DB -> ignore, continue as anonymous
             } catch (Exception ex) {
-                // any parsing/validation problem -> ignore, continue as anonymous
             }
         }
 

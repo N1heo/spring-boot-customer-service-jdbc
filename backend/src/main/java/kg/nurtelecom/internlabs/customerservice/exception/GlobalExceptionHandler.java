@@ -35,13 +35,11 @@ public class GlobalExceptionHandler {
         return buildError(HttpStatus.FORBIDDEN, ex.getMessage(), request);
     }
 
-    // Spring Security: not logged in / bad token / bad credentials, etc.
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<ErrorResponse> handleAuth(AuthenticationException ex, HttpServletRequest request) {
         return buildError(HttpStatus.UNAUTHORIZED, "Unauthorized", request);
     }
 
-    // Spring Security: logged in, but no permission
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ErrorResponse> handleAccessDenied(AccessDeniedException ex, HttpServletRequest request) {
         return buildError(HttpStatus.FORBIDDEN, "Forbidden", request);

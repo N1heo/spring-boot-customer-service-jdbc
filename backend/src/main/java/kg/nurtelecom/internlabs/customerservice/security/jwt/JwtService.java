@@ -21,17 +21,15 @@ public class JwtService {
     @Value("${spring.jwt.expiration}")
     private long tokenExpiration;
 
-    // ✅ Safe overload: pass principal/userDetails and we use getUsername()
     public String generateToken(UserDetails userDetails) {
         return generateToken(userDetails.getUsername());
     }
 
-    // Keep string version if you want it
     public String generateToken(String username) {
         String subject = username == null ? null : username.trim().toLowerCase();
 
         return Jwts.builder()
-                .subject(subject) // ✅ must be email
+                .subject(subject)
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + tokenExpiration))
                 .signWith(getSigningKey())

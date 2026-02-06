@@ -50,7 +50,6 @@ public class AuthControllerAPI {
 
         UserPrinciple user = (UserPrinciple) auth.getPrincipal();
 
-        // ✅ IMPORTANT: token subject MUST be email/username, not user.toString()
         String token = jwtService.generateToken(user);
 
         return new AuthResponse(token);
