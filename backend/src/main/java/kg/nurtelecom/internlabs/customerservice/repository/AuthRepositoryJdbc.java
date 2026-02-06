@@ -71,48 +71,60 @@ public class AuthRepositoryJdbc implements AuthService {
     return Optional.empty();
   }
 
-  @Override
-  public void register(RegisterCustomerRequest request, MultipartFile photo) {
-    String imagePath = null;
-    if (photo != null && !photo.isEmpty()) {
-      imagePath = storageService.store(photo);
-    }
+    @Override
+    public void register(RegisterCustomerRequest request, MultipartFile photo) {
 
-    UUID userId = UUID.randomUUID();
-    UUID customerId = UUID.randomUUID();
-    String encodedPassword = passwordEncoder.encode(request.getPassword());
-
-    String userSql = "INSERT INTO users (id, email, password_hash, role) VALUES (?, ?, ?, ?)";
-    String customerSql = "INSERT INTO customers (id, user_id, firstname, lastname, phone, image_path) VALUES (?, ?, ?, ?, ?, ?)";
-
-    try (Connection connection = jdbcConnectionFactory.getConnection()) {
-      connection.setAutoCommit(false);
-      try {
-        try (PreparedStatement userStmt = connection.prepareStatement(userSql)) {
-          userStmt.setObject(1, userId);
-          userStmt.setString(2, request.getEmail());
-          userStmt.setString(3, encodedPassword);
-          userStmt.setString(4, "USER");
-          userStmt.executeUpdate();
+        String imagePath = null;
+        if (photo != null && !photo.isEmpty()) {
+            imagePath = storageService.store(photo);
         }
 
-        try (PreparedStatement custStmt = connection.prepareStatement(customerSql)) {
-          custStmt.setObject(1, customerId);
-          custStmt.setObject(2, userId);
-          custStmt.setString(3, request.getFirstname());
-          custStmt.setString(4, request.getLastname());
-          custStmt.setString(5, request.getPhone());
-          custStmt.setString(6, imagePath);
-          custStmt.executeUpdate();
-        }
+        UUID customerId = UUID.randomUUID();
+        UUID userId = UUID.randomUUID();
 
-        connection.commit();
-      } catch (SQLException e) {
-        connection.rollback();
-        throw new RuntimeException("Transaction failed: " + e.getMessage(), e);
-      }
-    } catch (SQLException e) {
-      throw new RuntimeException("Connection error", e);
+        String encodedPassword = passwordEncoder.encode(request.getPassword());
+
+        String customerSql = """
+        INSERT INTO customers (id, first_name, last_name, phone, image_path)
+        VALUES (?, ?, ?, ?, ?)
+    """;
+
+        String userSql = """
+        INSERT INTO users (id, email, password_hash, role, customer_id)
+        VALUES (?, ?, ?, ?, ?)
+    """;
+
+        try (Connection connection = jdbcConnectionFactory.getConnection()) {
+
+            connection.setAutoCommit(false);
+
+            try {
+                try (PreparedStatement custStmt = connection.prepareStatement(customerSql)) {
+                    custStmt.setObject(1, customerId);
+                    custStmt.setString(2, request.getFirstname());
+                    custStmt.setString(3, request.getLastname());
+                    custStmt.setString(4, request.getPhone());
+                    custStmt.setString(5, imagePath);
+                    custStmt.executeUpdate();
+                }
+
+                try (PreparedStatement userStmt = connection.prepareStatement(userSql)) {
+                    userStmt.setObject(1, userId);
+                    userStmt.setString(2, request.getEmail());
+                    userStmt.setString(3, encodedPassword);
+                    userStmt.setString(4, "USER");
+                    userStmt.setObject(5, customerId);
+                    userStmt.executeUpdate();
+                }
+
+                connection.commit();
+
+            } catch (SQLException e) {
+                connection.rollback();
+                throw new RuntimeException("Transaction failed: " + e.getMessage(), e);
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException("Connection error", e);
+        }
     }
-  }
-}
