@@ -27,6 +27,9 @@ public class AuthControllerAPI {
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest loginRequest) {
+
+        System.out.println("HIT /login controller");
+
         return ResponseEntity.ok(authService.verify(loginRequest));
     }
 }
