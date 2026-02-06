@@ -2,6 +2,7 @@ package kg.nurtelecom.internlabs.customerservice.repository;
 
 import kg.nurtelecom.internlabs.customerservice.payload.request.customer.AdminCustomerCreateRequest;
 import kg.nurtelecom.internlabs.customerservice.payload.request.customer.AdminCustomerUpdateRequest;
+import kg.nurtelecom.internlabs.customerservice.payload.response.CustomerDetailResponse;
 import kg.nurtelecom.internlabs.customerservice.payload.response.CustomerResponse;
 import kg.nurtelecom.internlabs.customerservice.repository.jdbc.JdbcConnectionFactory;
 import kg.nurtelecom.internlabs.customerservice.service.AdminCustomerService;
@@ -9,6 +10,7 @@ import kg.nurtelecom.internlabs.customerservice.storage.StorageService;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.nio.channels.ScatteringByteChannel;
 import java.sql.Connection;
 import java.util.List;
 import java.util.UUID;
@@ -39,6 +41,14 @@ public class AdminCustomerRepository implements AdminCustomerService {
     public CustomerResponse findById(UUID id) {
         try (Connection c = cf.getConnection()) {
             return jdbc.findById(c, id);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public CustomerDetailResponse findByEmail(String email) {
+        try (Connection c = cf.getConnection()) {
+            return jdbc.findByEmail(c, email);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

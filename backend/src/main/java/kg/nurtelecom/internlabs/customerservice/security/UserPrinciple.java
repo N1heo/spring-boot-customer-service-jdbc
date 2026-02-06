@@ -11,12 +11,12 @@ import java.util.Collections;
 
 
 public class UserPrinciple implements UserDetails {
-    private final String username;
+    private final String email;
     private final String password;
     private final Role role;
 
-    public UserPrinciple(String username, String password, Role role) {
-        this.username = username;
+    public UserPrinciple(String email, String password, Role role) {
+        this.email = email;
         this.password = password;
         this.role = role;
     }
@@ -34,7 +34,7 @@ public class UserPrinciple implements UserDetails {
 
     @Override
     public String getUsername() {
-        return username;
+        return email;
     }
 
     @Override
