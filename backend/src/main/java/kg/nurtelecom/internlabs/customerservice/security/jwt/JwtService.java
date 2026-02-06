@@ -18,49 +18,48 @@ public class JwtService {
     @Value("${spring.jwt.secret-key}")
     private String secretKey;
 
-
     @Value("${spring.jwt.expiration}")
     private long tokenExpiration;
 
+    // ✅ Safe overload: pass principal/userDetails and we use getUsername()
+    public String generateToken(UserDetails userDetails) {
+        return generateToken(userDetails.getUsername());
+    }
 
-
+    // Keep string version if you want it
     public String generateToken(String username) {
+        String subject = username == null ? null : username.trim().toLowerCase();
+
         return Jwts.builder()
-                .subject(username)
+                .subject(subject) // ✅ must be email
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + tokenExpiration))
                 .signWith(getSigningKey())
                 .compact();
     }
 
+    public String extractUserName(String token) {
+        String sub = extractClaim(token, Claims::getSubject);
+        return sub == null ? null : sub.trim().toLowerCase();
+    }
 
+    public boolean validateToken(String token, UserDetails userDetails) {
+        final String username = extractUserName(token);
+        return username != null
+                && userDetails != null
+                && username.equalsIgnoreCase(userDetails.getUsername())
+                && !isTokenExpired(token);
+    }
 
     private SecretKey getSigningKey() {
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
-
-
-    public String extractUserName(String token) {
-        return extractClaim(token, Claims::getSubject);
-    }
-
-
-
-    public boolean validateToken(String token, UserDetails userDetails) {
-        final String username = extractUserName(token);
-        return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
-    }
-
-
-
     private <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = extractAllClaims(token);
         return claimsResolver.apply(claims);
     }
-
-
 
     private Claims extractAllClaims(String token) {
         return Jwts.parser()
@@ -70,9 +69,8 @@ public class JwtService {
                 .getPayload();
     }
 
-
-
     private boolean isTokenExpired(String token) {
-        return extractClaim(token, Claims::getExpiration).before(new Date());
+        Date exp = extractClaim(token, Claims::getExpiration);
+        return exp.before(new Date());
     }
 }
