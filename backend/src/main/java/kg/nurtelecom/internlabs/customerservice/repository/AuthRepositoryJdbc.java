@@ -24,52 +24,52 @@ import java.util.UUID;
 @Repository
 public class AuthRepositoryJdbc implements AuthService {
 
-  private final JdbcConnectionFactory jdbcConnectionFactory;
-  private final JwtService jwtService;
-  private final AuthenticationManager authenticationManager;
-  private final PasswordEncoder passwordEncoder;
-  private final StorageService storageService;
+    private final JdbcConnectionFactory jdbcConnectionFactory;
+    private final JwtService jwtService;
+    private final AuthenticationManager authenticationManager;
+    private final PasswordEncoder passwordEncoder;
+    private final StorageService storageService;
 
-  public AuthRepositoryJdbc(JdbcConnectionFactory jdbcConnectionFactory,
-                            JwtService jwtService,
-                            AuthenticationManager authenticationManager,
-                            PasswordEncoder passwordEncoder,
-                            StorageService storageService) {
-    this.jdbcConnectionFactory = jdbcConnectionFactory;
-    this.jwtService = jwtService;
-    this.authenticationManager = authenticationManager;
-    this.passwordEncoder = passwordEncoder;
-    this.storageService = storageService;
-  }
-
-  @Override
-  public AuthResponse verify(LoginRequest loginRequest) {
-    Authentication authentication = authenticationManager.authenticate(
-        new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword())
-    );
-
-    if (authentication.isAuthenticated()) {
-      return new AuthResponse(jwtService.generateToken(loginRequest.getEmail()));
+    public AuthRepositoryJdbc(JdbcConnectionFactory jdbcConnectionFactory,
+                              JwtService jwtService,
+                              AuthenticationManager authenticationManager,
+                              PasswordEncoder passwordEncoder,
+                              StorageService storageService) {
+        this.jdbcConnectionFactory = jdbcConnectionFactory;
+        this.jwtService = jwtService;
+        this.authenticationManager = authenticationManager;
+        this.passwordEncoder = passwordEncoder;
+        this.storageService = storageService;
     }
-    throw new kg.nurtelecom.internlabs.customerservice.exception.UnauthorizedException("Invalid credentials");
-  }
 
-  @Override
-  public Optional<String> findPasswordHashByEmail(String email) {
-    String sql = "SELECT password_hash FROM users WHERE email = ?";
-    try (Connection connection = jdbcConnectionFactory.getConnection();
-         PreparedStatement statement = connection.prepareStatement(sql)) {
-      statement.setString(1, email);
-      try (ResultSet resultSet = statement.executeQuery()) {
-        if (resultSet.next()) {
-          return Optional.of(resultSet.getString("password_hash"));
+    @Override
+    public AuthResponse verify(LoginRequest loginRequest) {
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword())
+        );
+
+        if (authentication.isAuthenticated()) {
+            return new AuthResponse(jwtService.generateToken(loginRequest.getEmail()));
         }
-      }
-    } catch (SQLException e) {
-      throw new RuntimeException("Database error during password lookup", e);
+        throw new kg.nurtelecom.internlabs.customerservice.exception.UnauthorizedException("Invalid credentials");
     }
-    return Optional.empty();
-  }
+
+    @Override
+    public Optional<String> findPasswordHashByEmail(String email) {
+        String sql = "SELECT password_hash FROM users WHERE email = ?";
+        try (Connection connection = jdbcConnectionFactory.getConnection();
+             PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, email);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    return Optional.of(resultSet.getString("password_hash"));
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("Database error during password lookup", e);
+        }
+        return Optional.empty();
+    }
 
     @Override
     public void register(RegisterCustomerRequest request, MultipartFile photo) {
@@ -85,14 +85,14 @@ public class AuthRepositoryJdbc implements AuthService {
         String encodedPassword = passwordEncoder.encode(request.getPassword());
 
         String customerSql = """
-        INSERT INTO customers (id, first_name, last_name, phone, image_path)
-        VALUES (?, ?, ?, ?, ?)
-    """;
+                    INSERT INTO customers (id, first_name, last_name, phone, image_path)
+                    VALUES (?, ?, ?, ?, ?)
+                """;
 
         String userSql = """
-        INSERT INTO users (id, email, password_hash, role, customer_id)
-        VALUES (?, ?, ?, ?, ?)
-    """;
+                    INSERT INTO users (id, email, password_hash, role, customer_id)
+                    VALUES (?, ?, ?, ?, ?)
+                """;
 
         try (Connection connection = jdbcConnectionFactory.getConnection()) {
 
@@ -128,3 +128,4 @@ public class AuthRepositoryJdbc implements AuthService {
             throw new RuntimeException("Connection error", e);
         }
     }
+}
