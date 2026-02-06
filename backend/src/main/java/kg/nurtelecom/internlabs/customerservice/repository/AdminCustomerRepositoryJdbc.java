@@ -2,6 +2,7 @@ package kg.nurtelecom.internlabs.customerservice.repository;
 
 import kg.nurtelecom.internlabs.customerservice.payload.request.customer.AdminCustomerCreateRequest;
 import kg.nurtelecom.internlabs.customerservice.payload.request.customer.AdminCustomerUpdateRequest;
+import kg.nurtelecom.internlabs.customerservice.payload.response.CustomerDetailResponse;
 import kg.nurtelecom.internlabs.customerservice.payload.response.CustomerResponse;
 import kg.nurtelecom.internlabs.customerservice.repository.jdbc.JdbcConnectionFactory;
 import org.springframework.stereotype.Repository;
@@ -77,6 +78,22 @@ public class AdminCustomerRepositoryJdbc {
         }
     }
 
+    public CustomerDetailResponse findByEmail(Connection c, String email) throws SQLException {
+        String sql = "SELECT  email, password_hash, role  FROM users WHERE email = ?";
+        try (PreparedStatement ps = c.prepareStatement(sql)) {
+            ps.setObject(1, email);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (!rs.next()){ return null;}
+                CustomerDetailResponse response =
+                        new CustomerDetailResponse(rs.getString("email"),
+                                                   rs.getString("password"),
+                                                   rs.getString("role"));
+                return response;
+            }
+        }
+    }
+
+
     public CustomerResponse findById(Connection c, UUID id) throws SQLException {
         String sql = "SELECT id, first_name, last_name, email, phone, image_path  FROM customers WHERE id = ?";
         try (PreparedStatement ps = c.prepareStatement(sql)) {
@@ -87,6 +104,8 @@ public class AdminCustomerRepositoryJdbc {
             }
         }
     }
+
+
 
     private CustomerResponse map(ResultSet rs) throws SQLException {
         return new CustomerResponse(
