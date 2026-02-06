@@ -1,12 +1,12 @@
 import axios from 'axios';
+axios.defaults.baseURL = "http://localhost:4445";
 
-const API_URL = '/api/auth/';
 
 class AuthService {
   login(user) {
     return axios
-      .post(API_URL + 'signin', {
-        username: user.username,
+      .post('/login', {
+        email: user.email,
         password: user.password
       })
       .then(response => {
@@ -22,12 +22,36 @@ class AuthService {
     localStorage.removeItem('user');
   }
 
-  register(user) {
-    return axios.post(API_URL + 'signup', {
-      username: user.username,
+  // register(user) {
+  //   return axios.post('/register', {
+  //     username: user.username,
+  //     email: user.email,
+  //     password: user.password
+  //   });
+  // }
+
+  register(user, photoFile) {
+    const formData = new FormData();
+
+    const data = {
       email: user.email,
-      password: user.password
-    });
+      password: user.password,
+      firstname: user.firstname,
+      lastname: user.lastname,
+      phone: user.phone
+    };
+
+    formData.append(
+        "data",
+        new Blob([JSON.stringify(data)], { type: "application/json" })
+    );
+
+    if (photoFile) {
+      formData.append("photo", photoFile);
+    }
+
+    return axios.post("/register", formData);
+
   }
 }
 

@@ -1,8 +1,7 @@
 import axios from "axios";
 import authHeader from "./auth-header";
 
-const API_URL = "/api/customers";
-const SOAP_URL = "http://164.90.210.208:4445/ws";
+const API_URL = "/customers";
 
 class CustomerService {
   getAllWithFormat(format) {
@@ -11,7 +10,7 @@ class CustomerService {
       Accept: format === "xml" ? "application/xml" : "application/json",
     };
 
-    const config = { headers };
+    const config = {headers};
 
     if (format === "xml") {
       config.responseType = "text";
@@ -21,16 +20,17 @@ class CustomerService {
   }
 
   create(data) {
-    return axios.post(API_URL, data, { headers: authHeader() });
+    return axios.post(API_URL, data, {headers: authHeader()});
   }
 
   update(idCustomer, data) {
-    return axios.put(`${API_URL}/${idCustomer}`, data, { headers: authHeader() });
+    return axios.put(`${API_URL}/${idCustomer}`, data, {headers: authHeader()});
   }
 
   deleteById(idCustomer) {
-    return axios.delete(`${API_URL}/${idCustomer}`, { headers: authHeader() });
+    return axios.delete(`${API_URL}/${idCustomer}`, {headers: authHeader()});
   }
+
 
   getCookie(name) {
     const parts = document.cookie.split(";").map((c) => c.trim());
@@ -41,37 +41,37 @@ class CustomerService {
     }
     return "";
   }
-
-  async ensureCsrf() {
-    await axios.get("/api/csrf", { withCredentials: true });
-  }
-
-  async getAllSoapCustomers() {
-    await this.ensureCsrf();
-
-    const xsrfToken = this.getCookie("XSRF-TOKEN");
-    if (!xsrfToken) {
-      throw new Error("XSRF-TOKEN cookie not found");
-    }
-
-    const soapEnvelope = `<?xml version="1.0" encoding="UTF-8"?>
-    <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
-                      xmlns:cus="http://bezkoder.com/customers">
-    <soapenv:Header/>
-      <soapenv:Body>
-        <cus:GetCustomersRequest/>
-      </soapenv:Body>
-    </soapenv:Envelope>`;
-
-    return axios.post(SOAP_URL, soapEnvelope, {
-      withCredentials: true,
-      responseType: "text",
-      headers: {
-        "Content-Type": "text/xml; charset=utf-8",
-        "X-XSRF-TOKEN": xsrfToken,
-      },
-    });
-  }
 }
+  // async ensureCsrf() {
+  //   await axios.get("/api/csrf", { withCredentials: true });
+  // }
+
+//   async getAllSoapCustomers() {
+//     await this.ensureCsrf();
+//
+//     const xsrfToken = this.getCookie("XSRF-TOKEN");
+//     if (!xsrfToken) {
+//       throw new Error("XSRF-TOKEN cookie not found");
+//     }
+//
+//     const soapEnvelope = `<?xml version="1.0" encoding="UTF-8"?>
+//     <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+//                       xmlns:cus="http://bezkoder.com/customers">
+//     <soapenv:Header/>
+//       <soapenv:Body>
+//         <cus:GetCustomersRequest/>
+//       </soapenv:Body>
+//     </soapenv:Envelope>`;
+//
+//     return axios.post(SOAP_URL, soapEnvelope, {
+//       withCredentials: true,
+//       responseType: "text",
+//       headers: {
+//         "Content-Type": "text/xml; charset=utf-8",
+//         "X-XSRF-TOKEN": xsrfToken,
+//       },
+//     });
+//   }
+// }
 
 export default new CustomerService();

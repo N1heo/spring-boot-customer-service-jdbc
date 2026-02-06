@@ -2,7 +2,7 @@ import { createWebHistory, createRouter } from "vue-router";
 import Home from "./components/Home.vue";
 import Login from "./components/Login.vue";
 import Register from "./components/Register.vue";
-import { initCsrf } from "./services/csrf";
+// import { initCsrf } from "./services/csrf";
 // lazy-loaded
 const Profile = () => import("./components/Profile.vue")
 const BoardAdmin = () => import("./components/BoardAdmin.vue")
@@ -66,7 +66,7 @@ const router = createRouter({
 
 router.beforeEach(async (to, from, next) => {
   if (to.path === "/login" || to.path === "/customers") {
-    await initCsrf();
+    // await initCsrf();
   }
   next();
 });

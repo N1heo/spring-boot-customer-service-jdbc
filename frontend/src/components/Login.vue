@@ -14,14 +14,14 @@
 
       <Form @submit="handleLogin" :validation-schema="schema" class="login-form">
         <div class="form-group">
-          <label for="username" class="form-label">Username</label>
+          <label for="email" class="form-label">Email</label>
           <Field
-              name="username"
+              name="email"
               type="text"
               class="form-input"
-              placeholder="Enter your username"
+              placeholder="Enter your email"
           />
-          <ErrorMessage name="username" class="error-message" />
+          <ErrorMessage name="email" class="error-message" />
         </div>
 
         <div class="form-group">
@@ -65,7 +65,7 @@ export default {
   },
   data() {
     const schema = yup.object().shape({
-      username: yup.string().required("Username is required!"),
+      email: yup.string().required("email is required!"),
       password: yup.string().required("Password is required!"),
     });
 
@@ -89,7 +89,7 @@ export default {
     handleLogin(user) {
       this.loading = true;
 
-      this.$store.dispatch("auth/login", user).then(
+      this.$store.dispatch("/login", user).then(
           () => {
             this.$router.push("/profile");
           },

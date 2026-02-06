@@ -15,16 +15,29 @@
       </div>
 
       <Form @submit="handleRegister" :validation-schema="schema" class="register-form">
+        <input type="file" @change="onFile" />
+
         <div v-if="!successful">
           <div class="form-group">
-            <label for="username" class="form-label">Username</label>
+            <label for="firstname" class="form-label">Firstname</label>
             <Field
-                name="username"
+                name="firstname"
                 type="text"
                 class="form-input"
-                placeholder="Choose a username"
+                placeholder="Choose a firstname"
             />
-            <ErrorMessage name="username" class="error-message" />
+            <ErrorMessage name="firstname" class="error-message" />
+          </div>
+
+          <div class="form-group">
+            <label for="lastname" class="form-label">Lastname</label>
+            <Field
+                name="lastname"
+                type="text"
+                class="form-input"
+                placeholder="Choose a lastname"
+            />
+            <ErrorMessage name="lastname" class="error-message" />
           </div>
 
           <div class="form-group">
@@ -36,6 +49,17 @@
                 placeholder="Enter your email"
             />
             <ErrorMessage name="email" class="error-message" />
+          </div>
+
+          <div class="form-group">
+            <label for="phone" class="form-label">Phone</label>
+            <Field
+                name="phone"
+                type="phone"
+                class="form-input"
+                placeholder="Enter your phone"
+            />
+            <ErrorMessage name="phone" class="error-message" />
           </div>
 
           <div class="form-group">
@@ -68,7 +92,7 @@
 </template>
 
 <script>
-import { Form, Field, ErrorMessage } from "vee-validate";
+import {Form, Field, ErrorMessage} from "vee-validate";
 import * as yup from "yup";
 
 export default {
@@ -80,9 +104,14 @@ export default {
   },
   data() {
     const schema = yup.object().shape({
-      username: yup
+      firstname: yup
           .string()
-          .required("Username is required!")
+          .required("firstname is required!")
+          .min(3, "Must be at least 3 characters!")
+          .max(20, "Must be maximum 20 characters!"),
+      lastname: yup
+          .string()
+          .required("lastname is required!")
           .min(3, "Must be at least 3 characters!")
           .max(20, "Must be maximum 20 characters!"),
       email: yup
@@ -90,6 +119,10 @@ export default {
           .required("Email is required!")
           .email("Email is invalid!")
           .max(50, "Must be maximum 50 characters!"),
+      phone: yup
+          .string()
+          .required("Phone required")
+          .min(9),
       password: yup
           .string()
           .required("Password is required!")
@@ -102,8 +135,10 @@ export default {
       loading: false,
       message: "",
       schema,
+      photoFile: null
     };
   },
+
   computed: {
     loggedIn() {
       return this.$store.state.auth.status.loggedIn;
@@ -115,29 +150,35 @@ export default {
     }
   },
   methods: {
+    onFile(e) {
+      this.photoFile = e.target.files[0];
+    },
     handleRegister(user) {
       this.message = "";
       this.successful = false;
       this.loading = true;
 
-      this.$store.dispatch("auth/register", user).then(
-          (data) => {
-            this.message = data.message;
+      this.$store.dispatch("auth/register", {
+        user: user,
+        photo: this.photoFile
+      }).then(
+          () => {
+            this.message = "Registered";
             this.successful = true;
             this.loading = false;
           },
           (error) => {
             this.message =
-                (error.response &&
-                    error.response.data &&
-                    error.response.data.message) ||
+                error.response?.data ||
                 error.message ||
                 error.toString();
+
             this.successful = false;
             this.loading = false;
           }
       );
-    },
+    }
+
   },
 };
 </script>
@@ -282,7 +323,9 @@ export default {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .alert {

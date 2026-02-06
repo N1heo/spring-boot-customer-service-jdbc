@@ -16,3 +16,12 @@ module.exports = {
     "vee-validate"
   ]
 };
+export default {
+  server: {
+    proxy: {
+      "/register": "http://localhost:8080",
+      "/login": "http://localhost:8080",
+      "/customers": "http://localhost:8080"
+    }
+  }
+}
