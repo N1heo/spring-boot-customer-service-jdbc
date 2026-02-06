@@ -17,12 +17,13 @@ import org.springframework.web.multipart.MultipartFile;
 public class FileSystemStorageService implements StorageService {
 
     private final Path root;
+    private final String publicPrefix = "/uploads/";
 
     @Autowired
     public FileSystemStorageService(StorageProperties properties) {
 
-        if(properties.getLocation().trim().isEmpty()){
-            throw new StorageException("File upload location can not be Empty.");
+        if (properties.getLocation().trim().isEmpty()) {
+            throw new StorageException("File upload location can not be empty.");
         }
 
         this.root = Paths.get(properties.getLocation());
@@ -53,7 +54,7 @@ public class FileSystemStorageService implements StorageService {
 
             Files.copy(file.getInputStream(), destination);
 
-            return filename;
+            return publicPrefix + filename;
 
         } catch (IOException e) {
             throw new StorageException("Failed to store file", e);
@@ -63,7 +64,11 @@ public class FileSystemStorageService implements StorageService {
     @Override
     public Resource loadAsResource(String filename) {
         try {
-            Path file = root.resolve(filename);
+            String cleanName = filename.startsWith(publicPrefix)
+                    ? filename.substring(publicPrefix.length())
+                    : filename;
+
+            Path file = root.resolve(cleanName);
             Resource resource = new UrlResource(file.toUri());
 
             if (resource.exists() || resource.isReadable()) {
@@ -80,7 +85,11 @@ public class FileSystemStorageService implements StorageService {
     @Override
     public void delete(String filename) {
         try {
-            Files.deleteIfExists(root.resolve(filename));
+            String cleanName = filename.startsWith(publicPrefix)
+                    ? filename.substring(publicPrefix.length())
+                    : filename;
+
+            Files.deleteIfExists(root.resolve(cleanName));
         } catch (IOException e) {
             throw new StorageException("Failed to delete file", e);
         }
