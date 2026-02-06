@@ -1,33 +1,59 @@
 package kg.nurtelecom.internlabs.customerservice.security;
 
 import kg.nurtelecom.internlabs.customerservice.enums.Role;
-import kg.nurtelecom.internlabs.customerservice.model.Customer;
-import kg.nurtelecom.internlabs.customerservice.payload.response.CustomerDetailResponse;
-import kg.nurtelecom.internlabs.customerservice.payload.response.CustomerResponse;
-import kg.nurtelecom.internlabs.customerservice.repository.AdminCustomerRepository;
+import kg.nurtelecom.internlabs.customerservice.repository.jdbc.JdbcConnectionFactory;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
 @Service
 public class CustomerDetailService implements UserDetailsService {
-    private final AdminCustomerRepository customerRepository;
 
-    public CustomerDetailService(AdminCustomerRepository customerRepository) {
-        this.customerRepository = customerRepository;
+    private final JdbcConnectionFactory cf;
+
+    public CustomerDetailService(JdbcConnectionFactory cf) {
+        this.cf = cf;
     }
-
-
-
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        CustomerDetailResponse customer = customerRepository.findByEmail(email);
-        if (customer == null) {
-            throw new UsernameNotFoundException("User with email " + email + " not found");
+
+        String normalized = email == null ? null : email.trim().toLowerCase();
+        if (normalized == null || normalized.isBlank()) {
+            throw new UsernameNotFoundException("User not found");
         }
-        Role role = Role.valueOf(customer.role());
-        return new UserPrinciple(customer.email(), customer.password(), role );
+
+        String sql = """
+            SELECT email, password_hash, role
+            FROM users
+            WHERE lower(email) = ?
+        """;
+
+        try (Connection c = cf.getConnection();
+             PreparedStatement ps = c.prepareStatement(sql)) {
+
+            ps.setString(1, normalized);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (!rs.next()) {
+                    throw new UsernameNotFoundException("User not found: " + normalized);
+                }
+
+                return new UserPrinciple(
+                        rs.getString("email"),
+                        rs.getString("password_hash"),
+                        Role.valueOf(rs.getString("role"))
+                );
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException("DB error while loading user", e);
+        }
     }
 }

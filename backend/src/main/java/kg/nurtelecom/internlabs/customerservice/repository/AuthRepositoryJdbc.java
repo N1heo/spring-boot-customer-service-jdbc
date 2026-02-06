@@ -41,18 +41,18 @@ public class AuthRepositoryJdbc implements AuthService {
         this.passwordEncoder = passwordEncoder;
         this.storageService = storageService;
     }
-
-    @Override
-    public AuthResponse verify(LoginRequest loginRequest) {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword())
-        );
-
-        if (authentication.isAuthenticated()) {
-            return new AuthResponse(jwtService.generateToken(loginRequest.getEmail()));
-        }
-        throw new kg.nurtelecom.internlabs.customerservice.exception.UnauthorizedException("Invalid credentials");
-    }
+//
+//    @Override
+//    public AuthResponse verify(LoginRequest loginRequest) {
+//        Authentication authentication = authenticationManager.authenticate(
+//                new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword())
+//        );
+//
+//        if (authentication.isAuthenticated()) {
+//            return new AuthResponse(jwtService.generateToken(loginRequest.getEmail()));
+//        }
+//        throw new kg.nurtelecom.internlabs.customerservice.exception.UnauthorizedException("Invalid credentials");
+//    }
 
     @Override
     public Optional<String> findPasswordHashByEmail(String email) {
