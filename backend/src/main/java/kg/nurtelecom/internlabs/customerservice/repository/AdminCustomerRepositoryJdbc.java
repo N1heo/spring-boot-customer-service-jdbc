@@ -157,7 +157,7 @@ public class AdminCustomerRepositoryJdbc {
                 if (!rs.next()){ return null;}
                 CustomerDetailResponse response =
                         new CustomerDetailResponse(rs.getString("email"),
-                                                   rs.getString("password"),
+                                                   rs.getString("password_hash"),
                                                    rs.getString("role"));
                 return response;
             }
@@ -165,8 +165,8 @@ public class AdminCustomerRepositoryJdbc {
     }
 
 
-    public CustomerResponse findById(Connection c, UUID id) throws SQLException {
-        String sql = "SELECT id, first_name, last_name, email, phone, image_path  FROM customers WHERE id = ?";
+//    public CustomerResponse findById(Connection c, UUID id) throws SQLException {
+//        String sql = "SELECT id, first_name, last_name, email, phone, image_path  FROM customers WHERE id = ?";
     public CustomerResponse findById(Connection c, UUID customerId) throws SQLException {
 
         String sql = """
