@@ -4,17 +4,10 @@ import authHeader from "./auth-header";
 const API_URL = "/admin/customers";
 
 class CustomerService {
-  getAllWithFormat(format) {
-    const headers = {
-      ...authHeader(),
-      Accept: format === "json"
-          ? "application/json"
-          : "application/xml"
-    };
-
-    const config = {headers};
-
-    return axios(API_URL, config);
+  getAllWithFormat() {
+    return axios.get("/admin/customers", {
+      headers: authHeader()
+    });
   }
 
   create(data) {

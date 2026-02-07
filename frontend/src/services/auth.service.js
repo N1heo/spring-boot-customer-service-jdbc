@@ -5,11 +5,10 @@ axios.defaults.baseURL = "http://localhost:4445";
 class AuthService {
 
   login(user) {
-    return axios
-        .post('/login', {
-          email: user.email,
-          password: user.password
-        })
+    return axios.post('/login', {
+      email: user.email,
+      password: user.password
+    })
         .then(response => {
           const token = response.data.token;
 
@@ -25,6 +24,7 @@ class AuthService {
           }
         });
   }
+
 
   logout() {
     localStorage.removeItem('user');

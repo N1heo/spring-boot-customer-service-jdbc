@@ -17,19 +17,25 @@
 
           <div class="info-card">
             <div class="info-item">
-              <span class="info-label">User ID</span>
-              <span class="info-value">{{ currentUser.id }}</span>
+              <span class="info-label">User idCustomer</span>
+              <span class="info-value">{{ profile?.idCustomer }}</span>
             </div>
 
             <div class="info-item">
               <span class="info-label">Email Address</span>
-              <span class="info-value">{{ currentUser.email }}</span>
+              <span class="info-value">{{ profile?.email }}</span>
             </div>
 
             <div class="info-item">
               <span class="info-label">Username</span>
-              <span class="info-value">{{ currentUser.username }}</span>
+              <span class="info-value">{{ profile?.firstName }} {{ profile?.lastName }}</span>
             </div>
+
+            <div class="info-item">
+              <span class="info-label">Phone</span>
+              <span class="info-value">{{ profile?.phone }}</span>
+            </div>
+
           </div>
         </div>
 
@@ -66,11 +72,14 @@
 </template>
 
 <script>
+import CustomerService from "../services/customer.service";
+
 export default {
   name: 'Profile',
   data() {
     return {
-      copied: false
+      copied: false,
+      profile: null
     };
   },
   computed: {
@@ -80,8 +89,13 @@ export default {
   },
   mounted() {
     if (!this.currentUser) {
-      this.$router.push('/login');
+      this.$router.push("/login");
+      return;
     }
+
+    CustomerService.getProfile().then(res => {
+      this.profile = res.data;
+    });
   },
   methods: {
     getInitials(username) {
