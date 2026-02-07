@@ -1,31 +1,13 @@
 <template>
   <div class="container-custom">
-    <div class="format-switch">
-      <button class="btn-json"
-        :class="{ active: format === 'json' }"
-        @click="changeFormat('json')"
-      >
-        JSON
-      </button>
-
-      <button class="btn-xml"
-        :class="{ active: format === 'xml' }"
-        @click="changeFormat('xml')"
-      >
-        XML
-      </button>
-    </div>
     <div class="header-section">
       <div>
         <h2 class="page-title">Customers</h2>
         <p class="page-subtitle">Manage your customer database</p>
       </div>
-      <button
-        v-if="format === 'json'"
-        class="btn-create"
-        @click="openCreate"
-      >
-        <span class="btn-icon">+</span>
+      <button class="btn-create">
+
+      <span class="btn-icon">+</span>
         Add Customer
       </button>
     </div>
@@ -36,10 +18,19 @@
     </div>
     <div v-if="error" class="status-message error">{{ error }}</div>
 
-    <div v-if="format === 'json'" class="customers-grid">
+    <div class="customers-grid">
       <div class="customer-card" v-for="c in customers" :key="c.idCustomer">
         <div class="card-header-custom">
-          <div class="avatar">{{ getInitials(c.firstName, c.lastName) }}</div>
+          <div class="avatar">
+            <img
+                v-if="c.imagePath"
+                :src="avatarUrl(c.imagePath)"
+                class="avatar-img"
+            />
+            <span v-else>
+    {{ getInitials(c.firstName, c.lastName) }}
+  </span>
+          </div>
           <div class="customer-name">
             <h4>{{ c.firstName }} {{ c.lastName }}</h4>
           </div>
@@ -248,16 +239,8 @@ export default {
   data() {
     return {
       customers: [],
-      xmlCustomers: [],
-      format: "json",
-      xmlData: '',
-      xmlViewMode: "cards",
       loading: false,
-      saving: false,
-      deleting: false,
       error: "",
-      modalError: "",
-      deleteError: "",
       modalOpen: false,
       deleteModalOpen: false,
       isEdit: false,
@@ -283,6 +266,12 @@ export default {
   },
 
   methods: {
+    avatarUrl(path) {
+      if (!path) return null;
+
+      return "http://localhost:4445" + path;
+    },
+
     getInitials(firstName, lastName) {
       const first = firstName ? firstName.charAt(0).toUpperCase() : "";
       const last = lastName ? lastName.charAt(0).toUpperCase() : "";
@@ -292,20 +281,13 @@ export default {
     async load() {
       this.loading = true;
       this.error = "";
+
       try {
-        if (this.format === "json") {
-          const res = await CustomerService.getAllWithFormat("json");
-          this.customers = res.data || [];
-          this.xmlData = "";
-          this.xmlCustomers = [];
-        } else {
-          const res = await CustomerService.getAllSoapCustomers();
-          this.xmlData = res.data || "";
-          this.xmlCustomers = this.parseSoapCustomers(this.xmlData);
-        }
+        const res = await CustomerService.getAll();
+        this.customers = res.data || [];
       } catch (e) {
         this.error =
-            (e.response && e.response.data && e.response.data.message) ||
+            e.response?.data?.message ||
             e.message ||
             String(e);
       } finally {
@@ -577,6 +559,7 @@ export default {
   width: 56px;
   height: 56px;
   border-radius: 50%;
+  overflow: hidden;
   background: linear-gradient(135deg, #d4a5d4 0%, #c9b8d4 100%);
   display: flex;
   align-items: center;
@@ -584,8 +567,14 @@ export default {
   font-weight: 600;
   font-size: 18px;
   color: white;
-  flex-shrink: 0;
 }
+
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 
 .customer-name h4 {
   margin: 0;
