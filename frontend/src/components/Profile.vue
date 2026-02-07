@@ -3,8 +3,16 @@
     <div class="profile-wrapper">
       <div class="profile-header">
         <div class="avatar-large">
-          {{ getInitials(currentUser.username) }}
+          <img
+              v-if="profile?.imagePath"
+              :src="avatarUrl"
+              class="avatar-img"
+          />
+          <span v-else>
+    {{ getInitials(currentUser.username) }}
+  </span>
         </div>
+
         <div class="header-text">
           <h2 class="username">{{ currentUser.username }}</h2>
           <p class="subtitle">User Profile</p>
@@ -85,6 +93,10 @@ export default {
   computed: {
     currentUser() {
       return this.$store.state.auth.user;
+    },
+    avatarUrl() {
+      if (!this.profile?.imagePath) return null;
+      return `http://localhost:4445${this.profile.imagePath}`;
     }
   },
   mounted() {
@@ -140,6 +152,7 @@ export default {
   width: 96px;
   height: 96px;
   border-radius: 50%;
+  overflow: hidden;
   background: linear-gradient(135deg, #d4a5d4 0%, #c9b8d4 100%);
   display: flex;
   align-items: center;
@@ -147,9 +160,14 @@ export default {
   font-weight: 600;
   font-size: 32px;
   color: white;
-  flex-shrink: 0;
-  box-shadow: 0 4px 16px rgba(212, 165, 212, 0.3);
 }
+
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 
 .header-text {
   flex: 1;
