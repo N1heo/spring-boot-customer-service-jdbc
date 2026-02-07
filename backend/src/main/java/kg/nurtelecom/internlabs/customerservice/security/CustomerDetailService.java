@@ -43,11 +43,17 @@ public class CustomerDetailService implements UserDetailsService {
                 }
 
                 UUID customerId = (UUID) rs.getObject("customer_id");
-
+                String roleRaw = rs.getString("role");
+                Role role;
+                try {
+                    role = Role.valueOf(roleRaw.trim().toUpperCase());
+                } catch (Exception ex) {
+                    throw new UsernameNotFoundException("Invalid role: " + roleRaw);
+                }
                 return new UserPrinciple(
                         rs.getString("email"),
                         rs.getString("password_hash"),
-                        Role.valueOf(rs.getString("role")),
+                        role,
                         customerId
                 );
             }

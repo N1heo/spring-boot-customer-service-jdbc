@@ -4,6 +4,7 @@ import kg.nurtelecom.internlabs.customerservice.payload.request.auth.LoginReques
 import kg.nurtelecom.internlabs.customerservice.payload.request.auth.RegisterCustomerRequest;
 import kg.nurtelecom.internlabs.customerservice.payload.response.AuthResponse;
 import kg.nurtelecom.internlabs.customerservice.repository.jdbc.JdbcConnectionFactory;
+import kg.nurtelecom.internlabs.customerservice.security.UserPrinciple;
 import kg.nurtelecom.internlabs.customerservice.security.jwt.JwtService;
 import kg.nurtelecom.internlabs.customerservice.service.AuthService;
 import kg.nurtelecom.internlabs.customerservice.storage.StorageService;
@@ -116,5 +117,21 @@ public class AuthRepositoryJdbc implements AuthService {
         } catch (SQLException e) {
             throw new RuntimeException("Connection error", e);
         }
+    }
+
+    @Override
+    public AuthResponse login(LoginRequest req) {
+        Authentication auth = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        req.getEmail(),
+                        req.getPassword()
+                )
+        );
+
+        UserPrinciple user = (UserPrinciple) auth.getPrincipal();
+
+        String token = jwtService.generateToken(user);
+
+        return new AuthResponse(token);
     }
 }
