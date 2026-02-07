@@ -3,19 +3,27 @@ axios.defaults.baseURL = "http://localhost:4445";
 
 
 class AuthService {
+
   login(user) {
     return axios
-      .post('/login', {
-        email: user.email,
-        password: user.password
-      })
-      .then(response => {
-        if (response.data.accessToken) {
-          localStorage.setItem('user', JSON.stringify(response.data));
-        }
+        .post('/login', {
+          email: user.email,
+          password: user.password
+        })
+        .then(response => {
+          const token = response.data.token;
 
-        return response.data;
-      });
+          if (token) {
+            const userData = {
+              accessToken: token,
+              username: user.email,
+              roles: [this.parseRole(token)]
+            };
+
+            localStorage.setItem("user", JSON.stringify(userData));
+            return userData;
+          }
+        });
   }
 
   logout() {
@@ -44,6 +52,11 @@ class AuthService {
 
     return axios.post("/register", formData);
 
+  }
+
+  parseRole(token) {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return "ROLE_" + payload.role;
   }
 }
 

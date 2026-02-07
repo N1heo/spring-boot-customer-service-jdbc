@@ -1,20 +1,18 @@
 import axios from "axios";
 import authHeader from "./auth-header";
 
-const API_URL = "/customers";
+const API_URL = "/admin/customers";
 
 class CustomerService {
   getAllWithFormat(format) {
     const headers = {
       ...authHeader(),
-      Accept: format === "xml" ? "application/xml" : "application/json",
+      Accept: format === "json"
+          ? "application/json"
+          : "application/xml"
     };
 
     const config = {headers};
-
-    if (format === "xml") {
-      config.responseType = "text";
-    }
 
     return axios(API_URL, config);
   }
@@ -40,6 +38,10 @@ class CustomerService {
       }
     }
     return "";
+  }
+
+  getProfile() {
+    return axios.get("/customer/profile", { headers: authHeader() });
   }
 }
 

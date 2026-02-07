@@ -63,12 +63,23 @@ const router = createRouter({
   routes,
 });
 
-// router.beforeEach(async (to, from, next) => {
-//   if (to.path === "/login" || to.path === "/customers") {
-//     // await initCsrf();
-//   }
-//   next();
-// });
+router.beforeEach((to, from, next) => {
+  const publicPages = ["/login", "/register", "/home"];
+  const authRequired = !publicPages.includes(to.path);
+  const user = JSON.parse(localStorage.getItem("user"));
+
+  if (authRequired && !user) {
+    return next("/login");
+  }
+
+  if (to.path === "/admin" || to.path === "/customers") {
+    if (!user?.roles?.includes("ROLE_ADMIN")) {
+      return next("/login");
+    }
+  }
+
+  next();
+});
 
 
 export default router;
