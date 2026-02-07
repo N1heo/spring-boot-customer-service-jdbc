@@ -1,5 +1,6 @@
 package kg.nurtelecom.internlabs.customerservice.controller;
 
+import jakarta.validation.Valid;
 import kg.nurtelecom.internlabs.customerservice.payload.request.auth.LoginRequest;
 import kg.nurtelecom.internlabs.customerservice.payload.request.auth.RegisterCustomerRequest;
 import kg.nurtelecom.internlabs.customerservice.payload.response.AuthResponse;
@@ -26,9 +27,14 @@ public class AuthControllerAPI {
         this.jwtService = jwtService;
     }
 
+    @PostMapping(value = "/register", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<AuthResponse> registerJson(@RequestBody @Valid RegisterCustomerRequest request) {
+        return ResponseEntity.ok(authService.register(request, null));
+    }
+
     @PostMapping(value = "/register", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<AuthResponse> register(
-            @RequestPart("data") RegisterCustomerRequest request,
+            @RequestPart("data") @Valid RegisterCustomerRequest request,
             @RequestPart(value = "photo", required = false) MultipartFile photo
     ) {
         AuthResponse resp = authService.register(request, photo);
@@ -36,7 +42,7 @@ public class AuthControllerAPI {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest req) {
+    public ResponseEntity<AuthResponse> login(@RequestBody @Valid LoginRequest req) {
         AuthResponse resp = authService.login(req);
         return ResponseEntity.ok(resp);
     }
