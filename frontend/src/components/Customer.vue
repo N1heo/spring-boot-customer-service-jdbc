@@ -23,13 +23,15 @@
         <div class="card-header-custom">
           <div class="avatar">
             <img
-                v-if="c.imagePath"
+                v-if="c.imagePath && !brokenImages[c.idCustomer]"
                 :src="avatarUrl(c.imagePath)"
                 class="avatar-img"
+                @error="onImgError(c.idCustomer)"
             />
+
             <span v-else>
-    {{ getInitials(c.firstName, c.lastName) }}
-  </span>
+  {{ getInitials(c.firstName, c.lastName) }}
+</span>
           </div>
           <div class="customer-name">
             <h4>{{ c.firstName }} {{ c.lastName }}</h4>
@@ -239,6 +241,7 @@ export default {
   data() {
     return {
       customers: [],
+      brokenImages: {},
       loading: false,
       error: "",
       modalOpen: false,
@@ -271,7 +274,9 @@ export default {
 
       return "http://localhost:4445" + path;
     },
-
+    onImgError(id) {
+      this.brokenImages[id] = true;
+    },
     getInitials(firstName, lastName) {
       const first = firstName ? firstName.charAt(0).toUpperCase() : "";
       const last = lastName ? lastName.charAt(0).toUpperCase() : "";
