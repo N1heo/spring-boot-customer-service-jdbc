@@ -42,36 +42,5 @@ class CustomerService {
     return "";
   }
 }
-  // async ensureCsrf() {
-  //   await axios.get("/api/csrf", { withCredentials: true });
-  // }
-
-//   async getAllSoapCustomers() {
-//     await this.ensureCsrf();
-//
-//     const xsrfToken = this.getCookie("XSRF-TOKEN");
-//     if (!xsrfToken) {
-//       throw new Error("XSRF-TOKEN cookie not found");
-//     }
-//
-//     const soapEnvelope = `<?xml version="1.0" encoding="UTF-8"?>
-//     <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
-//                       xmlns:cus="http://bezkoder.com/customers">
-//     <soapenv:Header/>
-//       <soapenv:Body>
-//         <cus:GetCustomersRequest/>
-//       </soapenv:Body>
-//     </soapenv:Envelope>`;
-//
-//     return axios.post(SOAP_URL, soapEnvelope, {
-//       withCredentials: true,
-//       responseType: "text",
-//       headers: {
-//         "Content-Type": "text/xml; charset=utf-8",
-//         "X-XSRF-TOKEN": xsrfToken,
-//       },
-//     });
-//   }
-// }
 
 export default new CustomerService();
