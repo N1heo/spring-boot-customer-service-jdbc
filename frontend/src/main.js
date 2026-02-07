@@ -7,6 +7,7 @@ import "bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
 import {FontAwesomeIcon} from "./plugins/font-awesome";
 
+import axios from "axios";
 
 
 // axios.defaults.withCredentials = true;
