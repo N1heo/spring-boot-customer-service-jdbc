@@ -1,5 +1,6 @@
 package kg.nurtelecom.internlabs.customerservice.repository;
 
+import kg.nurtelecom.internlabs.customerservice.enums.Role;
 import kg.nurtelecom.internlabs.customerservice.payload.request.auth.LoginRequest;
 import kg.nurtelecom.internlabs.customerservice.payload.request.auth.RegisterCustomerRequest;
 import kg.nurtelecom.internlabs.customerservice.payload.response.AuthResponse;
@@ -62,7 +63,7 @@ public class AuthRepositoryJdbc implements AuthService {
     }
 
     @Override
-    public void register(RegisterCustomerRequest request, MultipartFile photo) {
+    public AuthResponse register(RegisterCustomerRequest request, MultipartFile photo) {
 
         String imagePath = null;
         if (photo != null && !photo.isEmpty()) {
@@ -73,19 +74,19 @@ public class AuthRepositoryJdbc implements AuthService {
         UUID userId = UUID.randomUUID();
 
         String encodedPassword = passwordEncoder.encode(request.getPassword());
+        Role role = Role.USER;
 
         String customerSql = """
-                    INSERT INTO customers (id, first_name, last_name, phone, image_path)
-                    VALUES (?, ?, ?, ?, ?)
-                """;
+            INSERT INTO customers (id, first_name, last_name, phone, image_path)
+            VALUES (?, ?, ?, ?, ?)
+        """;
 
         String userSql = """
-                    INSERT INTO users (id, email, password_hash, role, customer_id)
-                    VALUES (?, ?, ?, ?, ?)
-                """;
+            INSERT INTO users (id, email, password_hash, role, customer_id)
+            VALUES (?, ?, ?, ?, ?)
+        """;
 
         try (Connection connection = jdbcConnectionFactory.getConnection()) {
-
             connection.setAutoCommit(false);
 
             try {
@@ -100,9 +101,9 @@ public class AuthRepositoryJdbc implements AuthService {
 
                 try (PreparedStatement userStmt = connection.prepareStatement(userSql)) {
                     userStmt.setObject(1, userId);
-                    userStmt.setString(2, request.getEmail());
+                    userStmt.setString(2, normalizeEmail(request.getEmail()));
                     userStmt.setString(3, encodedPassword);
-                    userStmt.setString(4, "USER");
+                    userStmt.setString(4, role.name());          // <-- ВАЖНО
                     userStmt.setObject(5, customerId);
                     userStmt.executeUpdate();
                 }
@@ -111,27 +112,37 @@ public class AuthRepositoryJdbc implements AuthService {
 
             } catch (SQLException e) {
                 connection.rollback();
+                if (imagePath != null) {
+                    try { storageService.delete(imagePath); } catch (Exception ignored) {}
+                }
                 throw new RuntimeException("Transaction failed: " + e.getMessage(), e);
             }
-
         } catch (SQLException e) {
+            if (imagePath != null) {
+                try { storageService.delete(imagePath); } catch (Exception ignored) {}
+            }
             throw new RuntimeException("Connection error", e);
         }
+
+        String token = jwtService.generateToken(normalizeEmail(request.getEmail()), role);
+        return new AuthResponse(token);
     }
 
     @Override
     public AuthResponse login(LoginRequest req) {
         Authentication auth = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        req.getEmail(),
+                        normalizeEmail(req.getEmail()),
                         req.getPassword()
                 )
         );
 
         UserPrinciple user = (UserPrinciple) auth.getPrincipal();
-
-        String token = jwtService.generateToken(user);
-
+        String token = jwtService.generateToken(user.getUsername(), user.getRole());
         return new AuthResponse(token);
+    }
+
+    private String normalizeEmail(String email) {
+        return email == null ? null : email.trim().toLowerCase();
     }
 }

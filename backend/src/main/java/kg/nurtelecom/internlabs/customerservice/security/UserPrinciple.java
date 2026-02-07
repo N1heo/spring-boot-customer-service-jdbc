@@ -34,6 +34,7 @@ public class UserPrinciple implements UserDetails {
 
     @Override public String getPassword() { return passwordHash; }
     @Override public String getUsername() { return email; }
+    public Role getRole() { return role; }
 
     @Override public boolean isAccountNonExpired() { return true; }
     @Override public boolean isAccountNonLocked() { return true; }

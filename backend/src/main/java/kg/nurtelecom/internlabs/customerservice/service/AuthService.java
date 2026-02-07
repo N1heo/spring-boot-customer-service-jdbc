@@ -8,7 +8,7 @@ import java.util.Optional;
 
 public interface AuthService {
 
-    void register(RegisterCustomerRequest request, MultipartFile photo);
+    AuthResponse register(RegisterCustomerRequest request, MultipartFile photo);
     Optional<String> findPasswordHashByEmail(String email);
     AuthResponse login(LoginRequest request);
 }
