@@ -35,8 +35,8 @@ public class WebSecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(request ->
-                        request.requestMatchers("/login", "/register", "/api/test/**").permitAll()
-                                .requestMatchers("/files/**").permitAll()
+                        request.requestMatchers("/login", "/register").permitAll()
+                                .requestMatchers("/uploads/**").permitAll()
                                 .requestMatchers("/admin/**", "/customer/**").hasRole("ADMIN")
                         .anyRequest().authenticated())
                 .sessionManagement(session ->
