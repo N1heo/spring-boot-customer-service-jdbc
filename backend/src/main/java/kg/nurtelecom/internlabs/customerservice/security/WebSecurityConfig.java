@@ -36,7 +36,7 @@ public class WebSecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(request ->
                         request.requestMatchers("/login", "/register").permitAll()
-                                .requestMatchers("/files/**").permitAll()
+                                .requestMatchers("/uploads/**").permitAll()
                                 .requestMatchers("/admin/**", "/customer/**").hasRole("ADMIN")
                         .anyRequest().authenticated())
                 .sessionManagement(session ->
