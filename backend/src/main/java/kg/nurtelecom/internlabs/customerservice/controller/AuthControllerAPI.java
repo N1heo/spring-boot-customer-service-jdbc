@@ -40,18 +40,6 @@ public class AuthControllerAPI {
 
     @PostMapping("/login")
     public AuthResponse login(@RequestBody LoginRequest req) {
-
-        Authentication auth = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        req.getEmail(),
-                        req.getPassword()
-                )
-        );
-
-        UserPrinciple user = (UserPrinciple) auth.getPrincipal();
-
-        String token = jwtService.generateToken(user);
-
-        return new AuthResponse(token);
+        return authService.login(req);
     }
 }
