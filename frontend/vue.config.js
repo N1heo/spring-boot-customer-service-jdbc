@@ -6,8 +6,21 @@ module.exports = {
         target: "http://localhost:4445",
         changeOrigin: true,
       },
-    },
+      "/register": {
+        target: "http://localhost:8080",
+        changeOrigin: true
+      },
+      "/login": {
+        target: "http://localhost:8080",
+        changeOrigin: true
+      },
+      "/customers": {
+        target: "http://localhost:8080",
+        changeOrigin: true
+      }
+    }
   },
+
   transpileDependencies: [
     "vue-router",
     "birpc",
@@ -16,12 +29,3 @@ module.exports = {
     "vee-validate"
   ]
 };
-export default {
-  server: {
-    proxy: {
-      "/register": "http://localhost:8080",
-      "/login": "http://localhost:8080",
-      "/customers": "http://localhost:8080"
-    }
-  }
-}
