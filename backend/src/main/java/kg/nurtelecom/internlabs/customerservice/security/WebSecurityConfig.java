@@ -35,10 +35,10 @@ public class WebSecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(request ->
-                        request.requestMatchers("/login", "/register")
-                                .permitAll()
-                                .anyRequest()
-                                .authenticated())
+                        request.requestMatchers("/login", "/register").permitAll()
+                                .requestMatchers("/files/**").permitAll()
+                                .requestMatchers("/admin/**", "/customer/**").hasRole("ADMIN")
+                        .anyRequest().authenticated())
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
@@ -53,7 +53,7 @@ public class WebSecurityConfig {
         config.setAllowedOriginPatterns(List.of("*"));
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
-        config.addExposedHeader(List.of("Authorization","Cache-Control","Content-Type").toString());
+        config.setExposedHeaders(List.of("Authorization", "Cache-Control", "Content-Type"));
         config.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
@@ -62,9 +62,6 @@ public class WebSecurityConfig {
 
     }
 
-
-
-
     @Bean
     public AuthenticationProvider authenticationProvider(UserDetailsService userDetailsService) {
         DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider(userDetailsService);
@@ -72,17 +69,13 @@ public class WebSecurityConfig {
         return authenticationProvider;
     }
 
-
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder(12);
     }
 
-
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
-
-
 }

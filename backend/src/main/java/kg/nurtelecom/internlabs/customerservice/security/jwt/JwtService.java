@@ -4,12 +4,15 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import kg.nurtelecom.internlabs.customerservice.enums.Role;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Function;
 
 @Service
@@ -21,8 +24,19 @@ public class JwtService {
     @Value("${spring.jwt.expiration}")
     private long tokenExpiration;
 
-    public String generateToken(UserDetails userDetails) {
-        return generateToken(userDetails.getUsername());
+    public String generateToken(String email, Role role) {
+        String subject = normalize(email);
+
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("role", role.name());
+
+        return Jwts.builder()
+                .subject(subject)
+                .claims(claims)
+                .issuedAt(new Date(System.currentTimeMillis()))
+                .expiration(new Date(System.currentTimeMillis() + tokenExpiration))
+                .signWith(getSigningKey())
+                .compact();
     }
 
     public String generateToken(String username) {
@@ -37,15 +51,18 @@ public class JwtService {
     }
 
     public String extractUserName(String token) {
-        String sub = extractClaim(token, Claims::getSubject);
-        return sub == null ? null : sub.trim().toLowerCase();
+        return normalize(extractClaim(token, Claims::getSubject));
+    }
+
+    public String extractRole(String token) {
+        return extractAllClaims(token).get("role", String.class);
     }
 
     public boolean validateToken(String token, UserDetails userDetails) {
-        final String username = extractUserName(token);
-        return username != null
+        final String email = extractUserName(token);
+        return email != null
                 && userDetails != null
-                && username.equalsIgnoreCase(userDetails.getUsername())
+                && email.equalsIgnoreCase(normalize(userDetails.getUsername()))
                 && !isTokenExpired(token);
     }
 
@@ -70,5 +87,9 @@ public class JwtService {
     private boolean isTokenExpired(String token) {
         Date exp = extractClaim(token, Claims::getExpiration);
         return exp.before(new Date());
+    }
+
+    private String normalize(String s) {
+        return s == null ? null : s.trim().toLowerCase();
     }
 }
