@@ -1,6 +1,7 @@
 package kg.nurtelecom.internlabs.customerservice.repository;
 
 import kg.nurtelecom.internlabs.customerservice.enums.Role;
+import kg.nurtelecom.internlabs.customerservice.exception.ConflictException;
 import kg.nurtelecom.internlabs.customerservice.payload.request.auth.LoginRequest;
 import kg.nurtelecom.internlabs.customerservice.payload.request.auth.RegisterCustomerRequest;
 import kg.nurtelecom.internlabs.customerservice.payload.response.AuthResponse;
@@ -115,6 +116,10 @@ public class AuthRepositoryJdbc implements AuthService {
                 if (imagePath != null) {
                     try { storageService.delete(imagePath); } catch (Exception ignored) {}
                 }
+                if ("23505".equals(e.getSQLState())) {
+                    throw new ConflictException("Phone or email already exists");
+                }
+
                 throw new RuntimeException("Transaction failed: " + e.getMessage(), e);
             }
         } catch (SQLException e) {
