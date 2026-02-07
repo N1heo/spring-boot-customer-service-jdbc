@@ -38,7 +38,7 @@ public class WebSecurityConfig {
                         request.requestMatchers("/login", "/register", "/api/test/**").permitAll()
                                 .requestMatchers("/uploads/**").permitAll()
                                 .requestMatchers("/admin/**").hasRole("ADMIN")
-                                .requestMatchers("/customer/**").hasAnyRole("CUSTOMER", "ADMIN")
+                                .requestMatchers("/customer/**").hasAnyRole("USER", "ADMIN")
                         .anyRequest().authenticated())
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
