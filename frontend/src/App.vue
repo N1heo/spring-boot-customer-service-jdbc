@@ -8,7 +8,7 @@
             <font-awesome-icon icon="home" /> Home
           </router-link>
         </li>
-        <li v-if="currentUser" class="nav-item">
+        <li v-if="showCustomerBoard" class="nav-item">
                   <router-link to="/customers" class="nav-link">
                     Customers
                   </router-link>
@@ -63,6 +63,13 @@ export default {
   computed: {
     currentUser() {
       return this.$store.state.auth.user;
+    },
+    showCustomerBoard() {
+      if (this.currentUser && this.currentUser['roles']) {
+        return this.currentUser['roles'].includes('ROLE_ADMIN');
+      }
+
+      return false;
     },
     showAdminBoard() {
       if (this.currentUser && this.currentUser['roles']) {
