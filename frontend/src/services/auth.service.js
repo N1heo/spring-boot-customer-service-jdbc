@@ -22,14 +22,6 @@ class AuthService {
     localStorage.removeItem('user');
   }
 
-  // register(user) {
-  //   return axios.post('/register', {
-  //     username: user.username,
-  //     email: user.email,
-  //     password: user.password
-  //   });
-  // }
-
   register(user, photoFile) {
     const formData = new FormData();
 

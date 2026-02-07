@@ -7,15 +7,15 @@ module.exports = {
         changeOrigin: true,
       },
       "/register": {
-        target: "http://localhost:8080",
+        target: "http://localhost:4445",
         changeOrigin: true
       },
       "/login": {
-        target: "http://localhost:8080",
+        target: "http://localhost:4445",
         changeOrigin: true
       },
       "/customers": {
-        target: "http://localhost:8080",
+        target: "http://localhost:4445",
         changeOrigin: true
       }
     }
