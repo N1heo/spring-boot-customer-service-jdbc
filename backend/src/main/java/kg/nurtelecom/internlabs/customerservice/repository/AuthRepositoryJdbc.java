@@ -104,7 +104,7 @@ public class AuthRepositoryJdbc implements AuthService {
                     userStmt.setObject(1, userId);
                     userStmt.setString(2, normalizeEmail(request.getEmail()));
                     userStmt.setString(3, encodedPassword);
-                    userStmt.setString(4, role.name());          // <-- ВАЖНО
+                    userStmt.setString(4, role.name());
                     userStmt.setObject(5, customerId);
                     userStmt.executeUpdate();
                 }

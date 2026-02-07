@@ -4,11 +4,9 @@ import jakarta.validation.Valid;
 import kg.nurtelecom.internlabs.customerservice.payload.request.auth.LoginRequest;
 import kg.nurtelecom.internlabs.customerservice.payload.request.auth.RegisterCustomerRequest;
 import kg.nurtelecom.internlabs.customerservice.payload.response.AuthResponse;
-import kg.nurtelecom.internlabs.customerservice.security.jwt.JwtService;
 import kg.nurtelecom.internlabs.customerservice.service.AuthService;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -16,15 +14,9 @@ import org.springframework.web.multipart.MultipartFile;
 public class AuthControllerAPI {
 
     private final AuthService authService;
-    private final AuthenticationManager authenticationManager;
-    private final JwtService jwtService;
 
-    public AuthControllerAPI(AuthService authService,
-                             AuthenticationManager authenticationManager,
-                             JwtService jwtService) {
+    public AuthControllerAPI(AuthService authService) {
         this.authService = authService;
-        this.authenticationManager = authenticationManager;
-        this.jwtService = jwtService;
     }
 
     @PostMapping(value = "/register", consumes = MediaType.APPLICATION_JSON_VALUE)
