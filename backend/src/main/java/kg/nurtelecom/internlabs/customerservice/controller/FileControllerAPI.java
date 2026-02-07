@@ -27,7 +27,13 @@ public class FileControllerAPI {
             HttpServletRequest request
     ) {
 
-        Resource file = storageService.loadAsResource(filename);
+        Resource file;
+
+        try {
+            file = storageService.loadAsResource(filename);
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
+        }
 
         String contentType = null;
 

@@ -9,10 +9,28 @@ import {FontAwesomeIcon} from "./plugins/font-awesome";
 
 import axios from "axios";
 
-
-// axios.defaults.withCredentials = true;
 axios.defaults.baseURL = "http://localhost:4445";
 
+axios.defaults.withCredentials = true;
+
+axios.interceptors.response.use(
+    r => r,
+    err => {
+        if (err.response?.status === 401 || err.response?.status === 403) {
+            localStorage.removeItem("user");
+            window.location = "/login";
+        }
+        return Promise.reject(err);
+    }
+);
+
+axios.interceptors.request.use(config => {
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (user?.accessToken) {
+        config.headers.Authorization = "Bearer " + user.accessToken;
+    }
+    return config;
+});
 
 createApp(App)
     .use(router)

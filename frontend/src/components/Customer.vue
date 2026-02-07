@@ -5,7 +5,7 @@
         <h2 class="page-title">Customers</h2>
         <p class="page-subtitle">Manage your customer database</p>
       </div>
-      <button class="btn-create">
+      <button class="btn-create" @click="openCreate">
 
       <span class="btn-icon">+</span>
         Add Customer
@@ -63,68 +63,6 @@
         </div>
       </div>
     </div>
-
-    <div v-if="format === 'xml'" class="xml-view">
-      <div class="xml-header">
-        <h3 class="xml-title">SOAP (XML)</h3>
-
-        <div class="xml-mode-switch">
-          <button
-            class="btn-data"
-            :class="{ active: xmlViewMode === 'cards' }"
-            @click="xmlViewMode = 'cards'"
-          >
-            Cards
-          </button>
-
-          <button
-            class="btn-data"
-            :class="{ active: xmlViewMode === 'raw' }"
-            @click="xmlViewMode = 'raw'"
-          >
-            Raw
-          </button>
-        </div>
-      </div>
-
-      <div v-if="xmlViewMode === 'cards'">
-        <div v-if="xmlCustomers.length" class="customers-grid" style="margin-top: 16px;">
-          <div class="customer-card" v-for="c in xmlCustomers" :key="c.idCustomer">
-            <div class="card-header-custom">
-              <div class="avatar">{{ getInitials(c.firstName, c.lastName) }}</div>
-              <div class="customer-name">
-                <h4>{{ c.firstName }} {{ c.lastName }}</h4>
-              </div>
-            </div>
-
-            <div class="card-content">
-              <div class="info-row">
-                <span class="info-label-inline">Phone:</span>
-                <span class="info-text">{{ c.phone }}</span>
-              </div>
-              <div class="info-row">
-                <span class="info-label-inline">Email:</span>
-                <span class="info-text">{{ c.email }}</span>
-              </div>
-              <div class="info-row id-row">
-                <span class="info-label">ID:</span>
-                <span class="info-value">{{ c.idCustomer }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div v-else class="status-message">
-          No SOAP customers found.
-        </div>
-      </div>
-
-      
-      <div v-else-if="xmlViewMode === 'raw'" style="margin-top: 16px;">
-        <div>{{ xmlData }}</div>
-      </div>
-    </div>
-
 
     <!-- Create/Edit Modal -->
     <transition name="modal-fade">
@@ -189,6 +127,19 @@
               </div>
             </div>
 
+            <div class="form-group">
+              <label class="form-label">Password</label>
+              <input
+                  v-model="form.password"
+                  class="form-input"
+                  :class="{ 'input-error': fieldErrors.passwoed }"
+                  type="password"
+              />
+              <div v-if="fieldErrors.password" class="field-error">
+                {{ fieldErrors.password }}
+              </div>
+            </div>
+
             <div v-if="modalError" class="modal-error">
               {{ modalError }}
             </div>
@@ -249,11 +200,16 @@ export default {
       isEdit: false,
       editId: null,
       deleteId: null,
+      saving: false,
+      deleting: false,
+      modalError: "",
+      deleteError: "",
       form: {
         firstName: "",
         lastName: "",
         phone: "",
         email: "",
+        photoFile: null
       },
       fieldErrors: {
         firstName: "",
@@ -300,42 +256,6 @@ export default {
       }
     },
 
-    changeFormat(format) {
-      this.format = format;
-      this.error = "";
-
-      if (format === "xml") {
-        this.xmlViewMode = "cards";
-      }
-
-      this.load();
-    },
-
-    parseSoapCustomers(xmlText) {
-      const doc = new DOMParser().parseFromString(xmlText, "text/xml");
-
-      if (!doc || !doc.documentElement) return [];
-
-      const allNodes = Array.from(doc.getElementsByTagName("*"));
-      const customerNodes = allNodes.filter((n) => n.localName === "customer");
-
-      const pick = (parent, tag) => {
-        const node = Array.from(parent.getElementsByTagName("*")).find(
-          (x) => x.localName === tag
-        );
-        return node?.textContent?.trim?.() || "";
-      };
-
-      return customerNodes.map((node) => ({
-        idCustomer: pick(node, "idCustomer"),
-        firstName: pick(node, "firstName"),
-        lastName: pick(node, "lastName"),
-        phone: pick(node, "phone"),
-        email: pick(node, "email"),
-      }));
-    },
-
-
     clearFieldErrors() {
       this.fieldErrors = {
         firstName: "",
@@ -364,6 +284,8 @@ export default {
         lastName: c.lastName || "",
         phone: c.phone || "",
         email: c.email || "",
+        password: "",
+        photoFile: null
       };
       this.modalOpen = true;
     },
@@ -374,39 +296,41 @@ export default {
     },
 
     async submit() {
-      this.saving = true;
-      this.modalError = "";
-      this.clearFieldErrors();
+      this.saving = true
+      this.modalError = ""
+      this.clearFieldErrors()
 
       try {
+        const fd = new FormData()
+
+        const payload = {
+          firstName: this.form.firstName,
+          lastName: this.form.lastName,
+          phone: this.form.phone,
+          email: this.form.email,
+          password: this.form.password
+        }
+
+        fd.append(
+            "data",
+            new Blob([JSON.stringify(payload)], { type: "application/json" })
+        )
+
+        if (this.form.photoFile) {
+          fd.append("photo", this.form.photoFile)
+        }
+
         if (this.isEdit) {
-          await CustomerService.update(this.editId, this.form);
+          await CustomerService.update(this.editId, fd)
         } else {
-          await CustomerService.create(this.form);
+          await CustomerService.create(fd)
         }
-        this.modalOpen = false;
-        await this.load();
+        this.modalOpen = false
+        await this.load()
       } catch (e) {
-        // Check if this is a validation error (400) with field errors
-        if (e.response && e.response.status === 400 && e.response.data && e.response.data.errors) {
-          // Map field errors from backend
-          const errors = e.response.data.errors;
-          this.fieldErrors = {
-            firstName: errors.firstName || "",
-            lastName: errors.lastName || "",
-            phone: errors.phone || "",
-            email: errors.email || "",
-          };
-          this.modalError = "Please fix the errors below";
-        } else {
-          // General error
-          this.modalError =
-              (e.response && e.response.data && e.response.data.message) ||
-              e.message ||
-              String(e);
-        }
+        this.modalError = e.response?.data?.message || e.message
       } finally {
-        this.saving = false;
+        this.saving = false
       }
     },
 
@@ -651,66 +575,6 @@ export default {
   font-size: 14px;
 }
 
-.btn-json {
-  margin: 10px 0 10px 0;
-  flex: 1;
-  padding: 10px 16px;
-  border: none;
-  border-radius: 10px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-size: 14px;
-  background: linear-gradient(135deg, #4bd66e 0%, #36cead 100%);
-  color: #ffffff;
-}
-
-.btn-xml {
-  margin: 10px 0 10px 10px;
-  flex: 1;
-  padding: 10px 16px;
-  border: none;
-  border-radius: 10px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-size: 14px;
-  background: linear-gradient(135deg, #4bd66e 0%, #36cead 100%);
-  color: #ffffff;
-}
-
-.btn-data {
-  margin: 10px 0 10px 10px;
-  flex: 1;
-  padding: 10px 16px;
-  border: none;
-  border-radius: 10px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-size: 14px;
-  background: linear-gradient(135deg, #e62adf 0%, #e62adf 100%);
-  color: #ffffff;
-}
-
-.btn-data:hover {
-  color: #2c5282;
-  background: linear-gradient(135deg, #c0dff0 0%, #b8d4eb 100%);
-  cursor: pointer;
-}
-
-.btn-json:hover {
-  color: #2c5282;
-  background: linear-gradient(135deg, #c0dff0 0%, #b8d4eb 100%);
-  cursor: pointer;
-}
-
-.btn-xml:hover {
-  color: #2c5282;
-  background: linear-gradient(135deg, #c0dff0 0%, #b8d4eb 100%);
-  cursor: pointer;
-}
-
 .btn-edit {
   background: linear-gradient(135deg, #d4e9f7 0%, #cfe2f3 100%);
   color: #2c5282;
@@ -767,48 +631,6 @@ export default {
   color: #4a5568;
 }
 
-.xml-view {
-  margin-top: 16px;
-}
-
-.xml-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 12px;
-}
-
-.xml-title {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 700;
-}
-
-.xml-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.btn-xml-view {
-  padding: 8px 12px;
-  border-radius: 10px;
-  border: 1px solid rgba(0,0,0,0.12);
-  background: #fff;
-  cursor: pointer;
-  font-weight: 600;
-}
-
-.btn-xml-view.active {
-  border-color: rgba(0,0,0,0.25);
-  background: rgba(0,0,0,0.04);
-}
-
-.idx-cell {
-  width: 56px;
-  color: rgba(0,0,0,0.55);
-}
-
 .id-cell {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   font-size: 12px;
@@ -816,31 +638,8 @@ export default {
   white-space: nowrap;
 }
 
-.phone-cell,
-.email-cell {
-  white-space: nowrap;
-}
 
-.empty-cell {
-  text-align: center;
-  padding: 18px;
-  color: rgba(0,0,0,0.55);
-}
 
-.raw-wrap {
-  border-radius: 14px;
-  border: 1px solid rgba(0,0,0,0.10);
-  background: #fff;
-  padding: 12px;
-}
-
-.raw-xml {
-  margin: 0;
-  white-space: pre-wrap;
-  word-break: break-word;
-  font-size: 12px;
-  line-height: 1.5;
-}
 
 .btn-close {
   background: none;

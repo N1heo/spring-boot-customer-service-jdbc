@@ -1,28 +1,27 @@
 import axios from "axios";
-import authHeader from "./auth-header";
 
 const API_URL = "/admin/customers";
 
 class CustomerService {
 
   create(data) {
-    return axios.post(API_URL, data, {headers: authHeader()});
+    return axios.post("/admin/customers", data);
   }
 
   update(idCustomer, data) {
-    return axios.put(`${API_URL}/${idCustomer}`, data, {headers: authHeader()});
+    return axios.put(`${API_URL}/${idCustomer}`, data);
   }
 
   deleteById(idCustomer) {
-    return axios.delete(`${API_URL}/${idCustomer}`, {headers: authHeader()});
+    return axios.delete(`${API_URL}/${idCustomer}`);
   }
 
   getProfile() {
-    return axios.get("/customer/profile", { headers: authHeader() });
+    return axios.get("/customer/profile",);
   }
 
   getAll() {
-    return axios.get("/admin/customers", { headers: authHeader() });
+    return axios.get("/admin/customers");
   }
 }
 
