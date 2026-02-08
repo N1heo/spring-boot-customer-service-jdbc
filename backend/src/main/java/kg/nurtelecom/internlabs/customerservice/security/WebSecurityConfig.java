@@ -84,12 +84,4 @@ public class WebSecurityConfig {
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
-
-    @Bean
-    public CustomAuthenticationFilter customUsernamePasswordAuthenticationFilter(
-            AuthenticationManager authenticationManager,
-            JwtService jwtService
-    ) {
-        return new CustomAuthenticationFilter(authenticationManager, jwtService);
-    }
 }
