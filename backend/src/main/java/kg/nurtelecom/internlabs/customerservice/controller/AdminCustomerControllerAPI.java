@@ -9,6 +9,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -26,6 +27,7 @@ public class AdminCustomerControllerAPI {
         this.service = service;
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     public ResponseEntity<List<CustomerResponse>> getAllCustomers() {
         try {
@@ -42,6 +44,7 @@ public class AdminCustomerControllerAPI {
         }
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/{id}")
     public ResponseEntity<CustomerResponse> getById(@PathVariable("id") UUID id) {
         try {
@@ -54,6 +57,8 @@ public class AdminCustomerControllerAPI {
         }
     }
 
+
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<CustomerResponse> createCustomer(
             @RequestPart(value = "photo", required = false) MultipartFile photo,
@@ -67,6 +72,7 @@ public class AdminCustomerControllerAPI {
         }
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<CustomerResponse> updateCustomer(
             @PathVariable("id") UUID id,
@@ -86,6 +92,8 @@ public class AdminCustomerControllerAPI {
         }
     }
 
+
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<HttpStatus> deleteCustomer(@PathVariable("id") UUID id) {
         try {
