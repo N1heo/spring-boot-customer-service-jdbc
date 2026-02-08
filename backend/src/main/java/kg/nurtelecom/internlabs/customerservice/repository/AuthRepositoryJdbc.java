@@ -19,9 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Optional;
 import java.util.UUID;
 
 @Repository
@@ -43,24 +41,6 @@ public class AuthRepositoryJdbc implements AuthService {
         this.authenticationManager = authenticationManager;
         this.passwordEncoder = passwordEncoder;
         this.storageService = storageService;
-    }
-
-
-    @Override
-    public Optional<String> findPasswordHashByEmail(String email) {
-        String sql = "SELECT password_hash FROM users WHERE email = ?";
-        try (Connection connection = jdbcConnectionFactory.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setString(1, email);
-            try (ResultSet resultSet = statement.executeQuery()) {
-                if (resultSet.next()) {
-                    return Optional.of(resultSet.getString("password_hash"));
-                }
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException("Database error during password lookup", e);
-        }
-        return Optional.empty();
     }
 
     @Override
