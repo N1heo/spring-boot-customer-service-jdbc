@@ -1,13 +1,14 @@
 package kg.nurtelecom.internlabs.customerservice.security;
 
 
-import kg.nurtelecom.internlabs.customerservice.security.jwt.JwtFilter;
+import kg.nurtelecom.internlabs.customerservice.security.filters.CustomAuthenticationFilter;
+import kg.nurtelecom.internlabs.customerservice.security.filters.CustomAuthorizationFilter;
+import kg.nurtelecom.internlabs.customerservice.security.jwt.JwtService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -28,9 +29,12 @@ import java.util.List;
 @EnableWebSecurity
 public class WebSecurityConfig {
 
-
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtFilter jwtFilter) throws Exception {
+    public SecurityFilterChain securityFilterChain(
+            HttpSecurity http,
+            CustomAuthorizationFilter customAuthorizationFilter,
+            CustomAuthenticationFilter customAuthenticationFilter
+    ) throws Exception {
         return http
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
@@ -42,7 +46,8 @@ public class WebSecurityConfig {
                         .anyRequest().authenticated())
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilter(customAuthenticationFilter)
+                .addFilterBefore(customAuthorizationFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 
@@ -78,5 +83,13 @@ public class WebSecurityConfig {
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
+    }
+
+    @Bean
+    public CustomAuthenticationFilter customUsernamePasswordAuthenticationFilter(
+            AuthenticationManager authenticationManager,
+            JwtService jwtService
+    ) {
+        return new CustomAuthenticationFilter(authenticationManager, jwtService);
     }
 }
