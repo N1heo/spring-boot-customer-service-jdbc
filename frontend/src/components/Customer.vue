@@ -47,6 +47,12 @@
             <span class="info-label-inline">Email:</span>
             <span class="info-text">{{ c.email }}</span>
           </div>
+
+          <div class="info-row">
+            <span class="info-label-inline">Role:</span>
+            <span class="info-text">{{ c.role }}</span>
+          </div>
+
           <div class="info-row id-row">
             <span class="info-label">ID:</span>
             <span class="info-value">{{ c.idCustomer }}</span>
