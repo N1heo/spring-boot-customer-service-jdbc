@@ -50,8 +50,21 @@ class AuthService {
       formData.append("photo", photoFile);
     }
 
-    return axios.post("/register", formData);
+    return axios.post("/register", formData)
+        .then(response => {
+          const token = response.data.token;
 
+          if (token) {
+            const userData = {
+              accessToken: token,
+              username: user.email,
+              roles: [this.parseRole(token)]
+            };
+
+            localStorage.setItem("user", JSON.stringify(userData));
+            return userData;
+          }
+        });
   }
 
   parseRole(token) {

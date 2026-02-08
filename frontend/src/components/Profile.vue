@@ -1,6 +1,14 @@
 <template>
   <div class="profile-container">
-    <div class="profile-wrapper">
+
+    <div v-if="isLoading" class="loader-wrapper">
+      <div class="loader-card">
+        <div class="loader-spinner"></div>
+        <p class="loader-text">Loading your profile...</p>
+      </div>
+    </div>
+
+    <div v-else class="profile-wrapper">
       <div class="profile-header">
         <div class="avatar-large">
           <img
@@ -9,8 +17,8 @@
               class="avatar-img"
           />
           <span v-else>
-    {{ getInitials(currentUser.username) }}
-  </span>
+            {{ getInitials(currentUser.username) }}
+          </span>
         </div>
 
         <div class="header-text">
@@ -87,7 +95,8 @@ export default {
   data() {
     return {
       copied: false,
-      profile: null
+      profile: null,
+      isLoading: true
     };
   },
   computed: {
@@ -105,11 +114,20 @@ export default {
       return;
     }
 
-    CustomerService.getProfile().then(res => {
-      this.profile = res.data;
-    });
+    this.loadProfile();
   },
   methods: {
+    async loadProfile() {
+      try {
+        this.isLoading = true;
+        const res = await CustomerService.getProfile();
+        this.profile = res.data;
+      } catch (error) {
+        console.error('Failed to load profile:', error);
+      } finally {
+        this.isLoading = false;
+      }
+    },
     getInitials(username) {
       if (!username) return '?';
       return username.substring(0, 2).toUpperCase();
@@ -132,9 +150,61 @@ export default {
   padding: 32px 24px;
 }
 
+.loader-wrapper {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loader-card {
+  background: white;
+  border-radius: 24px;
+  padding: 48px 40px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+.loader-spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid #e8eef5;
+  border-top-color: #a8d5e2;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loader-text {
+  margin: 0;
+  color: #4a5568;
+  font-size: 16px;
+  font-weight: 500;
+}
+
 .profile-wrapper {
   max-width: 800px;
   margin: 0 auto;
+  animation: fadeIn 0.4s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .profile-header {
@@ -160,6 +230,7 @@ export default {
   font-weight: 600;
   font-size: 32px;
   color: white;
+  flex-shrink: 0;
 }
 
 .avatar-img {
