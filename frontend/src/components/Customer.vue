@@ -70,7 +70,6 @@
       </div>
     </div>
 
-    <!-- Create/Edit Modal -->
     <transition name="modal-fade">
       <div v-if="modalOpen" class="modal-backdrop" @click="closeModal">
         <div class="modal-content" @click.stop>
@@ -138,11 +137,62 @@
               <input
                   v-model="form.password"
                   class="form-input"
-                  :class="{ 'input-error': fieldErrors.passwoed }"
+                  :class="{ 'input-error': fieldErrors.password }"
                   type="password"
+                  placeholder="Enter password"
               />
               <div v-if="fieldErrors.password" class="field-error">
                 {{ fieldErrors.password }}
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Role</label>
+              <div class="role-selector">
+                <label class="role-option" :class="{ 'role-selected': form.role === 'USER' }">
+                  <input
+                      type="radio"
+                      v-model="form.role"
+                      value="USER"
+                      class="role-radio"
+                  />
+                  <div class="role-card">
+                    <div class="role-icon user-icon">
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                      </svg>
+                    </div>
+                    <div class="role-info">
+                      <div class="role-title">User</div>
+                      <div class="role-description">Standard access</div>
+                    </div>
+                  </div>
+                </label>
+
+                <label class="role-option" :class="{ 'role-selected': form.role === 'ADMIN' }">
+                  <input
+                      type="radio"
+                      v-model="form.role"
+                      value="ADMIN"
+                      class="role-radio"
+                  />
+                  <div class="role-card">
+                    <div class="role-icon admin-icon">
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                        <path d="M2 17l10 5 10-5M2 12l10 5 10-5"></path>
+                      </svg>
+                    </div>
+                    <div class="role-info">
+                      <div class="role-title">Admin</div>
+                      <div class="role-description">Full access</div>
+                    </div>
+                  </div>
+                </label>
+              </div>
+              <div v-if="fieldErrors.role" class="field-error">
+                {{ fieldErrors.role }}
               </div>
             </div>
 
@@ -215,7 +265,8 @@ export default {
         lastName: "",
         phone: "",
         email: "",
-        photoFile: null
+        photoFile: null,
+        role: 'USER'
       },
       fieldErrors: {
         firstName: "",
@@ -276,7 +327,7 @@ export default {
       this.editId = null;
       this.modalError = "";
       this.clearFieldErrors();
-      this.form = {firstName: "", lastName: "", phone: "", email: ""};
+      this.form = {firstName: "", lastName: "", phone: "", email: "", role: 'USER'};
       this.modalOpen = true;
     },
 
@@ -291,7 +342,8 @@ export default {
         phone: c.phone || "",
         email: c.email || "",
         password: "",
-        photoFile: null
+        photoFile: null,
+        role: c.role || 'USER'
       };
       this.modalOpen = true;
     },
@@ -314,6 +366,7 @@ export default {
           lastName: this.form.lastName,
           phone: this.form.phone,
           email: this.form.email,
+          role: this.form.role,
           password: this.form.password
         }
 
@@ -327,9 +380,11 @@ export default {
         }
 
         if (this.isEdit) {
-          await CustomerService.update(this.editId, fd)
+          // await CustomerService.update(this.editId, fd)
+          await CustomerService.updateJson(this.editId, payload);
         } else {
-          await CustomerService.create(fd)
+          // await CustomerService.create(fd)
+          await CustomerService.create(fd);
         }
         this.modalOpen = false
         await this.load()
@@ -826,5 +881,98 @@ export default {
 
 .modal-fade-leave-to .modal-content {
   transform: scale(0.9);
+}
+
+.role-selector {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.role-option {
+  cursor: pointer;
+  position: relative;
+}
+
+.role-radio {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.role-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 2px solid #e8eef5;
+  border-radius: 12px;
+  background: #fafcfe;
+  transition: all 0.2s ease;
+}
+
+.role-option:hover .role-card {
+  border-color: #a8d5e2;
+  background: white;
+}
+
+.role-selected .role-card {
+  border-color: #a8d5e2;
+  background: linear-gradient(135deg, #f0f9fc 0%, #fafcfe 100%);
+  box-shadow: 0 0 0 3px rgba(168, 213, 226, 0.1);
+}
+
+.role-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.user-icon {
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+  color: #1976d2;
+}
+
+.admin-icon {
+  background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+  color: #f57c00;
+}
+
+.role-selected .user-icon {
+  background: linear-gradient(135deg, #64b5f6 0%, #42a5f5 100%);
+  color: white;
+}
+
+.role-selected .admin-icon {
+  background: linear-gradient(135deg, #ffb74d 0%, #ffa726 100%);
+  color: white;
+}
+
+.role-info {
+  flex: 1;
+}
+
+.role-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #4a5568;
+  margin-bottom: 2px;
+}
+
+.role-description {
+  font-size: 13px;
+  color: #a0aec0;
+}
+
+@media (max-width: 480px) {
+  .role-selector {
+    grid-template-columns: 1fr;
+  }
 }
 </style>
