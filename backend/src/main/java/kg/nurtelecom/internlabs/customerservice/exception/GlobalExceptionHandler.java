@@ -1,7 +1,7 @@
 package kg.nurtelecom.internlabs.customerservice.exception;
 
-import kg.nurtelecom.internlabs.customerservice.payload.response.ErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
+import kg.nurtelecom.internlabs.customerservice.payload.response.ErrorResponse;
 import kg.nurtelecom.internlabs.customerservice.storage.StorageFileNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,6 +11,7 @@ import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import java.util.stream.Collectors;
 
@@ -18,7 +19,7 @@ import java.util.stream.Collectors;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(StorageFileNotFoundException.class)
-    public ResponseEntity<?> handleNotFound() {
+    public ResponseEntity<?> handleStorageNotFound() {
         return ResponseEntity.notFound().build();
     }
 
@@ -28,6 +29,10 @@ public class GlobalExceptionHandler {
                 .body(new ErrorResponse(415, "Unsupported Media Type", ex.getMessage(), req.getRequestURI()));
     }
 
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ErrorResponse> handleMaxUpload(MaxUploadSizeExceededException ex, HttpServletRequest request) {
+        return buildError(HttpStatus.PAYLOAD_TOO_LARGE, "Maximum upload size exceeded", request);
+    }
 
     @ExceptionHandler(BadRequestException.class)
     public ResponseEntity<ErrorResponse> handleBadRequest(BadRequestException ex, HttpServletRequest request) {
@@ -37,6 +42,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(NotFoundException.class)
     public ResponseEntity<ErrorResponse> handleNotFound(NotFoundException ex, HttpServletRequest request) {
         return buildError(HttpStatus.NOT_FOUND, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(ConflictException.class)
+    public ResponseEntity<ErrorResponse> handleConflict(ConflictException ex, HttpServletRequest request) {
+        return buildError(HttpStatus.CONFLICT, ex.getMessage(), request);
     }
 
     @ExceptionHandler(UnauthorizedException.class)
@@ -74,7 +84,6 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleAll(Exception ex, HttpServletRequest request) {
-        // Don’t leak internal exception messages to clients
         return buildError(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error", request);
     }
 

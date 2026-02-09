@@ -5,9 +5,6 @@ import kg.nurtelecom.internlabs.customerservice.payload.request.customer.AdminCu
 import kg.nurtelecom.internlabs.customerservice.payload.request.customer.AdminCustomerUpdateRequest;
 import kg.nurtelecom.internlabs.customerservice.payload.response.CustomerResponse;
 import kg.nurtelecom.internlabs.customerservice.service.AdminCustomerService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -15,7 +12,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -32,33 +28,22 @@ public class AdminCustomerControllerAPI {
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     public ResponseEntity<List<CustomerResponse>> getAllCustomers() {
-        try {
-            List<CustomerResponse> customers = new ArrayList<>();
-            service.findAll().forEach(customers::add);
-
-            if (customers.isEmpty()) {
-                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-            }
-
-            return new ResponseEntity<>(customers, HttpStatus.OK);
-        } catch (Exception e) {
-            return new ResponseEntity<>((HttpHeaders) null, HttpStatus.INTERNAL_SERVER_ERROR);
+        List<CustomerResponse> customers = service.findAll();
+        if (customers == null || customers.isEmpty()) {
+            return ResponseEntity.noContent().build();
         }
+        return ResponseEntity.ok(customers);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/{id}")
     public ResponseEntity<CustomerResponse> getById(@PathVariable("id") UUID id) {
-        try {
-            CustomerResponse customer = service.findById(id);
-            return (customer != null)
-                    ? new ResponseEntity<>(customer, HttpStatus.OK)
-                    : new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        } catch (Exception e) {
-            return new ResponseEntity<>((HttpHeaders) null, HttpStatus.INTERNAL_SERVER_ERROR);
+        CustomerResponse customer = service.findById(id);
+        if (customer == null) {
+            return ResponseEntity.notFound().build();
         }
+        return ResponseEntity.ok(customer);
     }
-
 
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -66,12 +51,8 @@ public class AdminCustomerControllerAPI {
             @RequestPart(value = "photo", required = false) MultipartFile photo,
             @Valid @RequestPart("data") AdminCustomerCreateRequest request
     ) {
-        try {
-            CustomerResponse created = service.create(photo, request);
-            return new ResponseEntity<>(created, HttpStatus.CREATED);
-        } catch (Exception e) {
-            return new ResponseEntity<>((HttpHeaders) null, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        CustomerResponse created = service.create(photo, request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
@@ -80,29 +61,17 @@ public class AdminCustomerControllerAPI {
             @PathVariable("id") UUID id,
             @Valid @RequestBody AdminCustomerUpdateRequest request
     ) {
-        try {
-            CustomerResponse existing = service.findById(id);
-
-            if (existing != null) {
-                CustomerResponse updated = service.update(id, request);
-                return new ResponseEntity<>(updated, HttpStatus.OK);
-            } else {
-                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-            }
-        } catch (Exception e) {
-            return new ResponseEntity<>((HttpHeaders) null, HttpStatus.INTERNAL_SERVER_ERROR);
+        CustomerResponse updated = service.update(id, request);
+        if (updated == null) {
+            return ResponseEntity.notFound().build();
         }
+        return ResponseEntity.ok(updated);
     }
-
 
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
-    public ResponseEntity<HttpStatus> deleteCustomer(@PathVariable("id") UUID id) {
-        try {
-            service.deleteById(id);
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+    public ResponseEntity<Void> deleteCustomer(@PathVariable("id") UUID id) {
+        service.deleteById(id);
+        return ResponseEntity.noContent().build();
     }
 }
