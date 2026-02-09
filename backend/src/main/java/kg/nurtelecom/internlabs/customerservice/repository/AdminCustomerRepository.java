@@ -125,17 +125,16 @@ public class AdminCustomerRepository implements AdminCustomerService {
 
     @Override
     public void deleteById(UUID id) {
-        String oldPath = null;
+        String oldPath;
 
         try (Connection c = cf.getConnection()) {
-            boolean old = c.getAutoCommit();
+            boolean oldAutoCommit = c.getAutoCommit();
             c.setAutoCommit(false);
 
             try {
                 CustomerResponse existing = jdbc.findById(c, id);
                 if (existing == null) {
                     c.rollback();
-                    c.setAutoCommit(old);
                     return;
                 }
 
@@ -144,18 +143,21 @@ public class AdminCustomerRepository implements AdminCustomerService {
                 jdbc.deleteById(c, id);
 
                 c.commit();
-                c.setAutoCommit(old);
-
             } catch (Exception e) {
                 c.rollback();
-                c.setAutoCommit(old);
                 throw new RuntimeException(e);
+            } finally {
+                c.setAutoCommit(oldAutoCommit);
             }
-
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-
-        storage.delete(oldPath);
+        if (oldPath != null && !oldPath.isBlank()) {
+            try {
+                storage.delete(oldPath);
+            } catch (Exception e) {
+            }
+        }
     }
+
 }

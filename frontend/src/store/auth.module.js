@@ -27,9 +27,9 @@ export const auth = {
     },
     register({ commit }, payload) {
       return AuthService.register(payload.user, payload.photo).then(
-          res => {
-            commit('registerSuccess');
-            return Promise.resolve(res.data);
+          userData => {
+            commit('loginSuccess', userData);
+            return Promise.resolve(userData);
           },
           err => {
             commit('registerFailure');

@@ -1,31 +1,13 @@
 <template>
   <div class="container-custom">
-    <div class="format-switch">
-      <button class="btn-json"
-        :class="{ active: format === 'json' }"
-        @click="changeFormat('json')"
-      >
-        JSON
-      </button>
-
-      <button class="btn-xml"
-        :class="{ active: format === 'xml' }"
-        @click="changeFormat('xml')"
-      >
-        XML
-      </button>
-    </div>
     <div class="header-section">
       <div>
         <h2 class="page-title">Customers</h2>
         <p class="page-subtitle">Manage your customer database</p>
       </div>
-      <button
-        v-if="format === 'json'"
-        class="btn-create"
-        @click="openCreate"
-      >
-        <span class="btn-icon">+</span>
+      <button class="btn-create" @click="openCreate">
+
+      <span class="btn-icon">+</span>
         Add Customer
       </button>
     </div>
@@ -36,10 +18,21 @@
     </div>
     <div v-if="error" class="status-message error">{{ error }}</div>
 
-    <div v-if="format === 'json'" class="customers-grid">
+    <div class="customers-grid">
       <div class="customer-card" v-for="c in customers" :key="c.idCustomer">
         <div class="card-header-custom">
-          <div class="avatar">{{ getInitials(c.firstName, c.lastName) }}</div>
+          <div class="avatar">
+            <img
+                v-if="c.imagePath && !brokenImages[c.idCustomer]"
+                :src="avatarUrl(c.imagePath)"
+                class="avatar-img"
+                @error="onImgError(c.idCustomer)"
+            />
+
+            <span v-else>
+  {{ getInitials(c.firstName, c.lastName) }}
+</span>
+          </div>
           <div class="customer-name">
             <h4>{{ c.firstName }} {{ c.lastName }}</h4>
           </div>
@@ -54,6 +47,12 @@
             <span class="info-label-inline">Email:</span>
             <span class="info-text">{{ c.email }}</span>
           </div>
+
+          <div class="info-row">
+            <span class="info-label-inline">Role:</span>
+            <span class="info-text">{{ c.role }}</span>
+          </div>
+
           <div class="info-row id-row">
             <span class="info-label">ID:</span>
             <span class="info-value">{{ c.idCustomer }}</span>
@@ -71,69 +70,6 @@
       </div>
     </div>
 
-    <div v-if="format === 'xml'" class="xml-view">
-      <div class="xml-header">
-        <h3 class="xml-title">SOAP (XML)</h3>
-
-        <div class="xml-mode-switch">
-          <button
-            class="btn-data"
-            :class="{ active: xmlViewMode === 'cards' }"
-            @click="xmlViewMode = 'cards'"
-          >
-            Cards
-          </button>
-
-          <button
-            class="btn-data"
-            :class="{ active: xmlViewMode === 'raw' }"
-            @click="xmlViewMode = 'raw'"
-          >
-            Raw
-          </button>
-        </div>
-      </div>
-
-      <div v-if="xmlViewMode === 'cards'">
-        <div v-if="xmlCustomers.length" class="customers-grid" style="margin-top: 16px;">
-          <div class="customer-card" v-for="c in xmlCustomers" :key="c.idCustomer">
-            <div class="card-header-custom">
-              <div class="avatar">{{ getInitials(c.firstName, c.lastName) }}</div>
-              <div class="customer-name">
-                <h4>{{ c.firstName }} {{ c.lastName }}</h4>
-              </div>
-            </div>
-
-            <div class="card-content">
-              <div class="info-row">
-                <span class="info-label-inline">Phone:</span>
-                <span class="info-text">{{ c.phone }}</span>
-              </div>
-              <div class="info-row">
-                <span class="info-label-inline">Email:</span>
-                <span class="info-text">{{ c.email }}</span>
-              </div>
-              <div class="info-row id-row">
-                <span class="info-label">ID:</span>
-                <span class="info-value">{{ c.idCustomer }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div v-else class="status-message">
-          No SOAP customers found.
-        </div>
-      </div>
-
-      
-      <div v-else-if="xmlViewMode === 'raw'" style="margin-top: 16px;">
-        <div>{{ xmlData }}</div>
-      </div>
-    </div>
-
-
-    <!-- Create/Edit Modal -->
     <transition name="modal-fade">
       <div v-if="modalOpen" class="modal-backdrop" @click="closeModal">
         <div class="modal-content" @click.stop>
@@ -196,6 +132,70 @@
               </div>
             </div>
 
+            <div class="form-group">
+              <label class="form-label">Password</label>
+              <input
+                  v-model="form.password"
+                  class="form-input"
+                  :class="{ 'input-error': fieldErrors.password }"
+                  type="password"
+                  placeholder="Enter password"
+              />
+              <div v-if="fieldErrors.password" class="field-error">
+                {{ fieldErrors.password }}
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Role</label>
+              <div class="role-selector">
+                <label class="role-option" :class="{ 'role-selected': form.role === 'USER' }">
+                  <input
+                      type="radio"
+                      v-model="form.role"
+                      value="USER"
+                      class="role-radio"
+                  />
+                  <div class="role-card">
+                    <div class="role-icon user-icon">
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                      </svg>
+                    </div>
+                    <div class="role-info">
+                      <div class="role-title">User</div>
+                      <div class="role-description">Standard access</div>
+                    </div>
+                  </div>
+                </label>
+
+                <label class="role-option" :class="{ 'role-selected': form.role === 'ADMIN' }">
+                  <input
+                      type="radio"
+                      v-model="form.role"
+                      value="ADMIN"
+                      class="role-radio"
+                  />
+                  <div class="role-card">
+                    <div class="role-icon admin-icon">
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                        <path d="M2 17l10 5 10-5M2 12l10 5 10-5"></path>
+                      </svg>
+                    </div>
+                    <div class="role-info">
+                      <div class="role-title">Admin</div>
+                      <div class="role-description">Full access</div>
+                    </div>
+                  </div>
+                </label>
+              </div>
+              <div v-if="fieldErrors.role" class="field-error">
+                {{ fieldErrors.role }}
+              </div>
+            </div>
+
             <div v-if="modalError" class="modal-error">
               {{ modalError }}
             </div>
@@ -248,26 +248,25 @@ export default {
   data() {
     return {
       customers: [],
-      xmlCustomers: [],
-      format: "json",
-      xmlData: '',
-      xmlViewMode: "cards",
+      brokenImages: {},
       loading: false,
-      saving: false,
-      deleting: false,
       error: "",
-      modalError: "",
-      deleteError: "",
       modalOpen: false,
       deleteModalOpen: false,
       isEdit: false,
       editId: null,
       deleteId: null,
+      saving: false,
+      deleting: false,
+      modalError: "",
+      deleteError: "",
       form: {
         firstName: "",
         lastName: "",
         phone: "",
         email: "",
+        photoFile: null,
+        role: 'USER'
       },
       fieldErrors: {
         firstName: "",
@@ -283,6 +282,14 @@ export default {
   },
 
   methods: {
+    avatarUrl(path) {
+      if (!path) return null;
+
+      return "http://localhost:4445" + path;
+    },
+    onImgError(id) {
+      this.brokenImages[id] = true;
+    },
     getInitials(firstName, lastName) {
       const first = firstName ? firstName.charAt(0).toUpperCase() : "";
       const last = lastName ? lastName.charAt(0).toUpperCase() : "";
@@ -292,62 +299,19 @@ export default {
     async load() {
       this.loading = true;
       this.error = "";
+
       try {
-        if (this.format === "json") {
-          const res = await CustomerService.getAllWithFormat("json");
-          this.customers = res.data || [];
-          this.xmlData = "";
-          this.xmlCustomers = [];
-        } else {
-          const res = await CustomerService.getAllSoapCustomers();
-          this.xmlData = res.data || "";
-          this.xmlCustomers = this.parseSoapCustomers(this.xmlData);
-        }
+        const res = await CustomerService.getAll();
+        this.customers = res.data || [];
       } catch (e) {
         this.error =
-            (e.response && e.response.data && e.response.data.message) ||
+            e.response?.data?.message ||
             e.message ||
             String(e);
       } finally {
         this.loading = false;
       }
     },
-
-    changeFormat(format) {
-      this.format = format;
-      this.error = "";
-
-      if (format === "xml") {
-        this.xmlViewMode = "cards";
-      }
-
-      this.load();
-    },
-
-    parseSoapCustomers(xmlText) {
-      const doc = new DOMParser().parseFromString(xmlText, "text/xml");
-
-      if (!doc || !doc.documentElement) return [];
-
-      const allNodes = Array.from(doc.getElementsByTagName("*"));
-      const customerNodes = allNodes.filter((n) => n.localName === "customer");
-
-      const pick = (parent, tag) => {
-        const node = Array.from(parent.getElementsByTagName("*")).find(
-          (x) => x.localName === tag
-        );
-        return node?.textContent?.trim?.() || "";
-      };
-
-      return customerNodes.map((node) => ({
-        idCustomer: pick(node, "idCustomer"),
-        firstName: pick(node, "firstName"),
-        lastName: pick(node, "lastName"),
-        phone: pick(node, "phone"),
-        email: pick(node, "email"),
-      }));
-    },
-
 
     clearFieldErrors() {
       this.fieldErrors = {
@@ -363,7 +327,7 @@ export default {
       this.editId = null;
       this.modalError = "";
       this.clearFieldErrors();
-      this.form = {firstName: "", lastName: "", phone: "", email: ""};
+      this.form = {firstName: "", lastName: "", phone: "", email: "", role: 'USER'};
       this.modalOpen = true;
     },
 
@@ -377,6 +341,9 @@ export default {
         lastName: c.lastName || "",
         phone: c.phone || "",
         email: c.email || "",
+        password: "",
+        photoFile: null,
+        role: c.role || 'USER'
       };
       this.modalOpen = true;
     },
@@ -387,39 +354,44 @@ export default {
     },
 
     async submit() {
-      this.saving = true;
-      this.modalError = "";
-      this.clearFieldErrors();
+      this.saving = true
+      this.modalError = ""
+      this.clearFieldErrors()
 
       try {
+        const fd = new FormData()
+
+        const payload = {
+          firstName: this.form.firstName,
+          lastName: this.form.lastName,
+          phone: this.form.phone,
+          email: this.form.email,
+          role: this.form.role,
+          password: this.form.password
+        }
+
+        fd.append(
+            "data",
+            new Blob([JSON.stringify(payload)], { type: "application/json" })
+        )
+
+        if (this.form.photoFile) {
+          fd.append("photo", this.form.photoFile)
+        }
+
         if (this.isEdit) {
-          await CustomerService.update(this.editId, this.form);
+          // await CustomerService.update(this.editId, fd)
+          await CustomerService.updateJson(this.editId, payload);
         } else {
-          await CustomerService.create(this.form);
+          // await CustomerService.create(fd)
+          await CustomerService.create(fd);
         }
-        this.modalOpen = false;
-        await this.load();
+        this.modalOpen = false
+        await this.load()
       } catch (e) {
-        // Check if this is a validation error (400) with field errors
-        if (e.response && e.response.status === 400 && e.response.data && e.response.data.errors) {
-          // Map field errors from backend
-          const errors = e.response.data.errors;
-          this.fieldErrors = {
-            firstName: errors.firstName || "",
-            lastName: errors.lastName || "",
-            phone: errors.phone || "",
-            email: errors.email || "",
-          };
-          this.modalError = "Please fix the errors below";
-        } else {
-          // General error
-          this.modalError =
-              (e.response && e.response.data && e.response.data.message) ||
-              e.message ||
-              String(e);
-        }
+        this.modalError = e.response?.data?.message || e.message
       } finally {
-        this.saving = false;
+        this.saving = false
       }
     },
 
@@ -577,6 +549,7 @@ export default {
   width: 56px;
   height: 56px;
   border-radius: 50%;
+  overflow: hidden;
   background: linear-gradient(135deg, #d4a5d4 0%, #c9b8d4 100%);
   display: flex;
   align-items: center;
@@ -584,8 +557,14 @@ export default {
   font-weight: 600;
   font-size: 18px;
   color: white;
-  flex-shrink: 0;
 }
+
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 
 .customer-name h4 {
   margin: 0;
@@ -657,66 +636,6 @@ export default {
   font-size: 14px;
 }
 
-.btn-json {
-  margin: 10px 0 10px 0;
-  flex: 1;
-  padding: 10px 16px;
-  border: none;
-  border-radius: 10px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-size: 14px;
-  background: linear-gradient(135deg, #4bd66e 0%, #36cead 100%);
-  color: #ffffff;
-}
-
-.btn-xml {
-  margin: 10px 0 10px 10px;
-  flex: 1;
-  padding: 10px 16px;
-  border: none;
-  border-radius: 10px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-size: 14px;
-  background: linear-gradient(135deg, #4bd66e 0%, #36cead 100%);
-  color: #ffffff;
-}
-
-.btn-data {
-  margin: 10px 0 10px 10px;
-  flex: 1;
-  padding: 10px 16px;
-  border: none;
-  border-radius: 10px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-size: 14px;
-  background: linear-gradient(135deg, #e62adf 0%, #e62adf 100%);
-  color: #ffffff;
-}
-
-.btn-data:hover {
-  color: #2c5282;
-  background: linear-gradient(135deg, #c0dff0 0%, #b8d4eb 100%);
-  cursor: pointer;
-}
-
-.btn-json:hover {
-  color: #2c5282;
-  background: linear-gradient(135deg, #c0dff0 0%, #b8d4eb 100%);
-  cursor: pointer;
-}
-
-.btn-xml:hover {
-  color: #2c5282;
-  background: linear-gradient(135deg, #c0dff0 0%, #b8d4eb 100%);
-  cursor: pointer;
-}
-
 .btn-edit {
   background: linear-gradient(135deg, #d4e9f7 0%, #cfe2f3 100%);
   color: #2c5282;
@@ -773,48 +692,6 @@ export default {
   color: #4a5568;
 }
 
-.xml-view {
-  margin-top: 16px;
-}
-
-.xml-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 12px;
-}
-
-.xml-title {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 700;
-}
-
-.xml-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.btn-xml-view {
-  padding: 8px 12px;
-  border-radius: 10px;
-  border: 1px solid rgba(0,0,0,0.12);
-  background: #fff;
-  cursor: pointer;
-  font-weight: 600;
-}
-
-.btn-xml-view.active {
-  border-color: rgba(0,0,0,0.25);
-  background: rgba(0,0,0,0.04);
-}
-
-.idx-cell {
-  width: 56px;
-  color: rgba(0,0,0,0.55);
-}
-
 .id-cell {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   font-size: 12px;
@@ -822,31 +699,8 @@ export default {
   white-space: nowrap;
 }
 
-.phone-cell,
-.email-cell {
-  white-space: nowrap;
-}
 
-.empty-cell {
-  text-align: center;
-  padding: 18px;
-  color: rgba(0,0,0,0.55);
-}
 
-.raw-wrap {
-  border-radius: 14px;
-  border: 1px solid rgba(0,0,0,0.10);
-  background: #fff;
-  padding: 12px;
-}
-
-.raw-xml {
-  margin: 0;
-  white-space: pre-wrap;
-  word-break: break-word;
-  font-size: 12px;
-  line-height: 1.5;
-}
 
 .btn-close {
   background: none;
@@ -1027,5 +881,98 @@ export default {
 
 .modal-fade-leave-to .modal-content {
   transform: scale(0.9);
+}
+
+.role-selector {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.role-option {
+  cursor: pointer;
+  position: relative;
+}
+
+.role-radio {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.role-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 2px solid #e8eef5;
+  border-radius: 12px;
+  background: #fafcfe;
+  transition: all 0.2s ease;
+}
+
+.role-option:hover .role-card {
+  border-color: #a8d5e2;
+  background: white;
+}
+
+.role-selected .role-card {
+  border-color: #a8d5e2;
+  background: linear-gradient(135deg, #f0f9fc 0%, #fafcfe 100%);
+  box-shadow: 0 0 0 3px rgba(168, 213, 226, 0.1);
+}
+
+.role-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.user-icon {
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+  color: #1976d2;
+}
+
+.admin-icon {
+  background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+  color: #f57c00;
+}
+
+.role-selected .user-icon {
+  background: linear-gradient(135deg, #64b5f6 0%, #42a5f5 100%);
+  color: white;
+}
+
+.role-selected .admin-icon {
+  background: linear-gradient(135deg, #ffb74d 0%, #ffa726 100%);
+  color: white;
+}
+
+.role-info {
+  flex: 1;
+}
+
+.role-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #4a5568;
+  margin-bottom: 2px;
+}
+
+.role-description {
+  font-size: 13px;
+  color: #a0aec0;
+}
+
+@media (max-width: 480px) {
+  .role-selector {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

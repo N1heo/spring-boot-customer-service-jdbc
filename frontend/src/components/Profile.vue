@@ -1,10 +1,26 @@
 <template>
   <div class="profile-container">
-    <div class="profile-wrapper">
+
+    <div v-if="isLoading" class="loader-wrapper">
+      <div class="loader-card">
+        <div class="loader-spinner"></div>
+        <p class="loader-text">Loading your profile...</p>
+      </div>
+    </div>
+
+    <div v-else class="profile-wrapper">
       <div class="profile-header">
         <div class="avatar-large">
-          {{ getInitials(currentUser.username) }}
+          <img
+              v-if="profile?.imagePath"
+              :src="avatarUrl"
+              class="avatar-img"
+          />
+          <span v-else>
+            {{ getInitials(currentUser.username) }}
+          </span>
         </div>
+
         <div class="header-text">
           <h2 class="username">{{ currentUser.username }}</h2>
           <p class="subtitle">User Profile</p>
@@ -17,19 +33,25 @@
 
           <div class="info-card">
             <div class="info-item">
-              <span class="info-label">User ID</span>
-              <span class="info-value">{{ currentUser.id }}</span>
+              <span class="info-label">User idCustomer</span>
+              <span class="info-value">{{ profile?.idCustomer }}</span>
             </div>
 
             <div class="info-item">
               <span class="info-label">Email Address</span>
-              <span class="info-value">{{ currentUser.email }}</span>
+              <span class="info-value">{{ profile?.email }}</span>
             </div>
 
             <div class="info-item">
               <span class="info-label">Username</span>
-              <span class="info-value">{{ currentUser.username }}</span>
+              <span class="info-value">{{ profile?.firstName }} {{ profile?.lastName }}</span>
             </div>
+
+            <div class="info-item">
+              <span class="info-label">Phone</span>
+              <span class="info-value">{{ profile?.phone }}</span>
+            </div>
+
           </div>
         </div>
 
@@ -66,24 +88,46 @@
 </template>
 
 <script>
+import CustomerService from "../services/customer.service";
+
 export default {
   name: 'Profile',
   data() {
     return {
-      copied: false
+      copied: false,
+      profile: null,
+      isLoading: true
     };
   },
   computed: {
     currentUser() {
       return this.$store.state.auth.user;
+    },
+    avatarUrl() {
+      if (!this.profile?.imagePath) return null;
+      return `http://localhost:4445${this.profile.imagePath}`;
     }
   },
   mounted() {
     if (!this.currentUser) {
-      this.$router.push('/login');
+      this.$router.push("/login");
+      return;
     }
+
+    this.loadProfile();
   },
   methods: {
+    async loadProfile() {
+      try {
+        this.isLoading = true;
+        const res = await CustomerService.getProfile();
+        this.profile = res.data;
+      } catch (error) {
+        console.error('Failed to load profile:', error);
+      } finally {
+        this.isLoading = false;
+      }
+    },
     getInitials(username) {
       if (!username) return '?';
       return username.substring(0, 2).toUpperCase();
@@ -106,9 +150,61 @@ export default {
   padding: 32px 24px;
 }
 
+.loader-wrapper {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loader-card {
+  background: white;
+  border-radius: 24px;
+  padding: 48px 40px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+.loader-spinner {
+  width: 48px;
+  height: 48px;
+  border: 4px solid #e8eef5;
+  border-top-color: #a8d5e2;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loader-text {
+  margin: 0;
+  color: #4a5568;
+  font-size: 16px;
+  font-weight: 500;
+}
+
 .profile-wrapper {
   max-width: 800px;
   margin: 0 auto;
+  animation: fadeIn 0.4s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .profile-header {
@@ -126,6 +222,7 @@ export default {
   width: 96px;
   height: 96px;
   border-radius: 50%;
+  overflow: hidden;
   background: linear-gradient(135deg, #d4a5d4 0%, #c9b8d4 100%);
   display: flex;
   align-items: center;
@@ -134,8 +231,14 @@ export default {
   font-size: 32px;
   color: white;
   flex-shrink: 0;
-  box-shadow: 0 4px 16px rgba(212, 165, 212, 0.3);
 }
+
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 
 .header-text {
   flex: 1;

@@ -3,32 +3,32 @@ axios.defaults.baseURL = "http://localhost:4445";
 
 
 class AuthService {
-  login(user) {
-    return axios
-      .post('/login', {
-        email: user.email,
-        password: user.password
-      })
-      .then(response => {
-        if (response.data.accessToken) {
-          localStorage.setItem('user', JSON.stringify(response.data));
-        }
 
-        return response.data;
-      });
+  login(user) {
+    return axios.post('/login', {
+      email: user.email,
+      password: user.password
+    })
+        .then(response => {
+          const token = response.data.token;
+
+          if (token) {
+            const userData = {
+              accessToken: token,
+              username: user.email,
+              roles: [this.parseRole(token)]
+            };
+
+            localStorage.setItem("user", JSON.stringify(userData));
+            return userData;
+          }
+        });
   }
+
 
   logout() {
     localStorage.removeItem('user');
   }
-
-  // register(user) {
-  //   return axios.post('/register', {
-  //     username: user.username,
-  //     email: user.email,
-  //     password: user.password
-  //   });
-  // }
 
   register(user, photoFile) {
     const formData = new FormData();
@@ -50,8 +50,26 @@ class AuthService {
       formData.append("photo", photoFile);
     }
 
-    return axios.post("/register", formData);
+    return axios.post("/register", formData)
+        .then(response => {
+          const token = response.data.token;
 
+          if (token) {
+            const userData = {
+              accessToken: token,
+              username: user.email,
+              roles: [this.parseRole(token)]
+            };
+
+            localStorage.setItem("user", JSON.stringify(userData));
+            return userData;
+          }
+        });
+  }
+
+  parseRole(token) {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return "ROLE_" + payload.role;
   }
 }
 

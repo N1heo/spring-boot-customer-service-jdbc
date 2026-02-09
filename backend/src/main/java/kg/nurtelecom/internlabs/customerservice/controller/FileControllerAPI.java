@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/files")
+@RequestMapping("/uploads")
 public class FileControllerAPI {
 
     private final StorageService storageService;
@@ -27,7 +27,13 @@ public class FileControllerAPI {
             HttpServletRequest request
     ) {
 
-        Resource file = storageService.loadAsResource(filename);
+        Resource file;
+
+        try {
+            file = storageService.loadAsResource(filename);
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
+        }
 
         String contentType = null;
 
