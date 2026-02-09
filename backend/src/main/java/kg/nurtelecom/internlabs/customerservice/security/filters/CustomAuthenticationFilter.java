@@ -19,6 +19,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
+@Deprecated
 @Component
 public class CustomAuthenticationFilter
     extends UsernamePasswordAuthenticationFilter {

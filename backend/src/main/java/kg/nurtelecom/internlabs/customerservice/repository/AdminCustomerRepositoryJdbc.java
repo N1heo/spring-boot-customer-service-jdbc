@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 import java.sql.*;
 import java.util.*;
 
+@Deprecated
 @Repository
 public class AdminCustomerRepositoryJdbc {
 
@@ -164,9 +165,6 @@ public class AdminCustomerRepositoryJdbc {
         }
     }
 
-
-//    public CustomerResponse findById(Connection c, UUID id) throws SQLException {
-//        String sql = "SELECT id, first_name, last_name, email, phone, image_path  FROM customers WHERE id = ?";
     public CustomerResponse findById(Connection c, UUID customerId) throws SQLException {
 
         String sql = """

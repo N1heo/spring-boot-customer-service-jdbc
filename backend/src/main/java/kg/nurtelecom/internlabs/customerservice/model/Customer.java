@@ -2,6 +2,7 @@ package kg.nurtelecom.internlabs.customerservice.model;
 
 import kg.nurtelecom.internlabs.customerservice.enums.Role;
 
+@Deprecated
 public class Customer {
     private Long id;
     private String username;

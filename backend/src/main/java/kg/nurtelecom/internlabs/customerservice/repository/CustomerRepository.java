@@ -11,6 +11,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.sql.Connection;
 import java.util.UUID;
 
+@Deprecated
 @Repository
 public class CustomerRepository implements CustomerProfileService  {
 
