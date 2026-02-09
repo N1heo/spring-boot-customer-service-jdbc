@@ -1,4 +1,4 @@
-package kg.nurtelecom.internlabs.customerservice.security.filters;
+package kg.nurtelecom.internlabs.customerservice.security.jwt;
 
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
@@ -7,7 +7,6 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import kg.nurtelecom.internlabs.customerservice.security.CustomerDetailService;
-import kg.nurtelecom.internlabs.customerservice.security.jwt.JwtService;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -19,12 +18,12 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 
 @Component
-public class CustomAuthorizationFilter extends OncePerRequestFilter {
+public class JwtFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final CustomerDetailService customerDetailService;
 
-    public CustomAuthorizationFilter(JwtService jwtService, CustomerDetailService customerDetailService) {
+    public JwtFilter(JwtService jwtService, CustomerDetailService customerDetailService) {
         this.jwtService = jwtService;
         this.customerDetailService = customerDetailService;
     }

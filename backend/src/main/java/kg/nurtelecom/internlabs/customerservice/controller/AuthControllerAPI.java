@@ -1,6 +1,7 @@
 package kg.nurtelecom.internlabs.customerservice.controller;
 
 import jakarta.validation.Valid;
+import kg.nurtelecom.internlabs.customerservice.payload.request.auth.LoginRequest;
 import kg.nurtelecom.internlabs.customerservice.payload.request.auth.RegisterCustomerRequest;
 import kg.nurtelecom.internlabs.customerservice.payload.response.AuthResponse;
 import kg.nurtelecom.internlabs.customerservice.service.AuthService;
@@ -24,6 +25,12 @@ public class AuthControllerAPI {
             @RequestPart(value = "photo", required = false) MultipartFile photo
     ) {
         AuthResponse resp = authService.register(request, photo);
+        return ResponseEntity.ok(resp);
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<AuthResponse> login(@RequestBody @Valid LoginRequest req) {
+        AuthResponse resp = authService.login(req);
         return ResponseEntity.ok(resp);
     }
 }

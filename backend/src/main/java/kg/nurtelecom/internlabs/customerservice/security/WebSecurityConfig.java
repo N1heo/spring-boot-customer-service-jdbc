@@ -1,16 +1,13 @@
 package kg.nurtelecom.internlabs.customerservice.security;
 
 
-import kg.nurtelecom.internlabs.customerservice.security.filters.CustomAuthenticationFilter;
-import kg.nurtelecom.internlabs.customerservice.security.filters.CustomAuthorizationFilter;
-import kg.nurtelecom.internlabs.customerservice.security.jwt.JwtService;
+import kg.nurtelecom.internlabs.customerservice.security.jwt.JwtFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -27,30 +24,25 @@ import java.util.Arrays;
 import java.util.List;
 
 @Configuration
-@EnableMethodSecurity
 @EnableWebSecurity
 public class WebSecurityConfig {
 
+
     @Bean
-    public SecurityFilterChain securityFilterChain(
-            HttpSecurity http,
-            CustomAuthorizationFilter customAuthorizationFilter,
-            CustomAuthenticationFilter customAuthenticationFilter
-    ) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtFilter jwtFilter) throws Exception {
         return http
-                .csrf(csrf -> csrf.disable())
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .authorizeHttpRequests(request ->
-                        request.requestMatchers("/login", "/register", "/api/test/**", "/").permitAll()
-                                .requestMatchers("/uploads/**").permitAll()
-                                .requestMatchers("/admin/**").hasRole("ADMIN")
-                                .requestMatchers("/customer/**").hasAnyRole("USER", "ADMIN")
-                        .anyRequest().authenticated())
-                .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .addFilter(customAuthenticationFilter)
-                .addFilterBefore(customAuthorizationFilter, UsernamePasswordAuthenticationFilter.class)
-                .build();
+            .csrf(csrf -> csrf.disable())
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            .authorizeHttpRequests(request ->
+                request.requestMatchers("/login", "/register", "/api/test/**").permitAll()
+                    .requestMatchers("/uploads/**").permitAll()
+                    .requestMatchers("/admin/**").hasRole("ADMIN")
+                    .requestMatchers("/customer/**").hasAnyRole("USER", "ADMIN")
+                    .anyRequest().authenticated())
+            .sessionManagement(session ->
+                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+            .build();
     }
 
 
