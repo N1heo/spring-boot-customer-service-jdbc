@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import java.sql.*;
 import java.util.UUID;
 
-@Deprecated
 @Service
 public class CustomerDetailService implements UserDetailsService {
 

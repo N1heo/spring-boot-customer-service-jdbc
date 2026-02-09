@@ -11,7 +11,6 @@ import org.springframework.stereotype.Repository;
 import java.sql.*;
 import java.util.*;
 
-@Deprecated
 @Repository
 public class AdminCustomerRepositoryJdbc {
 
